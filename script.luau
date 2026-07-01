@@ -1337,8 +1337,9 @@ loadstring((function()
 'Cg=='}
  local s = table.concat(t)
  local o = {}
+ local function v(ch) local r = c:find(ch) return r and r-1 or 0 end
  for i = 1, #s - 3, 4 do
-  local a, b, c2, d2 = c:find(s:sub(i,i))-1, c:find(s:sub(i+1,i+1))-1, c:find(s:sub(i+2,i+2))-1, c:find(s:sub(i+3,i+3))-1
+  local a, b, c2, d2 = v(s:sub(i,i)), v(s:sub(i+1,i+1)), v(s:sub(i+2,i+2)), v(s:sub(i+3,i+3))
   local n = a*262144 + b*4096 + c2*64 + d2
   o[#o+1] = string.char(math.floor(n/65536), math.floor(n/256%256), n%256)
  end
