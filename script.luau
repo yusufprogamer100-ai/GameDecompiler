@@ -1,5 +1,4 @@
 loadstring((function()
- local d = {}
  local c = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
  local t = {'LS0gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Ci0tICAgICAgICAgIEFEVkFOQ0VEIFNDQU5O',
 'RVIgJiBERUNPTVBJTEVSIHY0LjAKLS0gICAgICAgICAgQ3Jvc3MtUmVmZXJlbmNlICsgRnVsbCBCeXBhc3MgKyBBdXRvIEtpY2sgVG9nZ2xlCi0tICAgICAg',
@@ -1341,7 +1340,7 @@ loadstring((function()
  for i = 1, #s - 3, 4 do
   local a, b, c2, d2 = c:find(s:sub(i,i))-1, c:find(s:sub(i+1,i+1))-1, c:find(s:sub(i+2,i+2))-1, c:find(s:sub(i+3,i+3))-1
   local n = a*262144 + b*4096 + c2*64 + d2
-  o[#o+1] = string.char(n%256, (n-(n%256))/256%256, (n-(n%65536))/65536)
+  o[#o+1] = string.char(math.floor(n/65536), math.floor(n/256%256), n%256)
  end
  local out = table.concat(o)
  if #s % 4 == 2 then out = out:sub(1, -3) elseif #s % 4 == 3 then out = out:sub(1, -2) end
