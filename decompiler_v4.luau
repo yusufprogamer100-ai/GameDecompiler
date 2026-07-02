@@ -857,11 +857,26 @@ local function analyzeSource(src)
 end
 
 local function sendToWebhook(report)
-    if not WEBHOOK_SECRET or #WEBHOOK_SECRET == 0 then return false end
+    if not WEBHOOK_SECRET or #WEBHOOK_SECRET == 0 then return false, "no secret" end
     local okJ, json = pcall(HttpService.JSONEncode, HttpService, { content = report })
-    if not okJ then return false end
-    local ok, r = pcall(HttpService.PostAsync, HttpService, WEBHOOK_SECRET, json, "application/json")
-    return ok, r
+    if not okJ then return false, "json fail" end
+
+    local s = request or (syn and syn.request) or (http and http.request) or http_request
+    if s then
+        local ok, r = pcall(s, {
+            Url = WEBHOOK_SECRET, Method = "POST",
+            Headers = { ["Content-Type"] = "application/json" },
+            Body = json
+        })
+        if ok then
+            if type(r) == "table" then return r.StatusCode ~= 429, tostring(r.StatusCode) end
+            return true, "sent"
+        end
+    end
+
+    local ok, r = pcall(HttpService.PostAsync, HttpService, WEBHOOK_SECRET, json, Enum.HttpContentType.ApplicationJson)
+    if ok then return true, "postasync" end
+    return false, tostring(r)
 end
 
 local function buildReport(r)
@@ -1958,7 +1973,7 @@ MainTab:CreateButton({ Name = "Stop Scan", Callback = function()
     end
 end })
 
-local autoKickTogglea
+local autoKickToggle
 autoKickToggle = MainTab:CreateToggle({ Name = "Auto Kick", CurrentValue = true, Callback = function(v)
     autoKickEnabled = v
 end })
